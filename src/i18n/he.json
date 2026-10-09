@@ -1,0 +1,50 @@
+{
+  "appName": "מוצא השקיעות",
+  "tonight": "הערב",
+  "today": "היום",
+  "locating": "מאתר מיקום…",
+  "loadingForecast": "טוען תחזית…",
+  "accuracy": "דיוק ±{{m}} מ׳",
+  "defaultLocation": "מיקום ברירת מחדל: יפו (אין הרשאת מיקום)",
+  "refreshLocation": "רענון מיקום",
+  "copyCoords": "העתקת קואורדינטות",
+  "copied": "הועתק",
+  "error": "לא ניתן לטעון את התחזית. נסו שוב מאוחר יותר.",
+  "retry": "נסו שוב",
+  "language": "English",
+  "labels": {
+    "meh": "סתמית",
+    "nice": "נחמדה",
+    "great": "מעולה",
+    "epic": "אפית"
+  },
+  "confidence": {
+    "high": "ודאות גבוהה",
+    "medium": "ודאות בינונית",
+    "low": "ודאות נמוכה"
+  },
+  "times": {
+    "goldenHour": "שעת הזהב",
+    "arriveBy": "להגיע עד",
+    "sunset": "שקיעה",
+    "peakColor": "שיא הצבעים",
+    "dusk": "סוף השעה הכחולה",
+    "direction": "כיוון השקיעה"
+  },
+  "reasons": {
+    "canvas": "עננים גבוהים — קנבס לצבעים",
+    "tooMuchCloud": "מעונן מדי",
+    "clearSky": "שמיים בהירים לגמרי — מעט צבע",
+    "clearPath": "אופק מערבי פתוח",
+    "blockedPath": "עננים נמוכים חוסמים את האור במערב",
+    "lowCloud": "עננות נמוכה מעליך",
+    "rain": "צפוי גשם בשקיעה",
+    "postStorm": "התבהרות אחרי גשם",
+    "crisp": "אוויר צלול",
+    "hazy": "אובך",
+    "aerosolGlow": "מעט אבק — אדומים עמוקים",
+    "heavyDust": "שרב / אבק כבד"
+  },
+  "week": "השבוע",
+  "footer": "נתוני מזג אוויר: Open-Meteo"
+}

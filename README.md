@@ -1,0 +1,41 @@
+# מוצא השקיעות · Sunset Finder
+
+A Hebrew-first (RTL) PWA + native Android/iOS app (Capacitor) that predicts how good each
+sunset will be over the next 7 days at your exact location, and (next milestone) where exactly
+to stand for the best view. Tuned for Israel.
+
+## How the prediction works
+For every sunset the app pulls hourly forecasts from [Open-Meteo](https://open-meteo.com) (free, no
+API key) for your location **and** for four points 25/50/100/200 km along the sunset direction:
+
+- **High/mid cloud overhead (20–70%)** is the canvas that lights up. This is the biggest plus.
+- **Low cloud along the light path** blocks the sun from lighting that canvas. This is the biggest minus.
+- **Clearing after rain** is a bonus, and a bigger one in winter, when fronts bring Israel's best sunsets.
+- **Aerosols / dust**: light dust deepens the reds. Heavy sharav mutes everything.
+- **Visibility and humidity** affect clarity. Rain or low overcast at sunset is a penalty.
+
+Each day gets a 0–100 score, a label (סתמית / נחמדה / מעולה / אפית), the reasons behind it, and a
+confidence level that drops with lead time. All weights live in `src/lib/score.ts`.
+
+## Development
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm test           # scoring + sun-time unit tests
+npm run build      # PWA build in dist/
+```
+
+## Running it on your phone
+- **PWA (Android + iPhone):** open the deployed site, then use *Add to Home Screen* (Safari → Share on iPhone).
+  The `Deploy PWA to GitHub Pages` workflow publishes it once Pages is enabled in the repo settings
+  (Settings → Pages → Source: GitHub Actions).
+- **Android app:** the `Android APK` workflow builds `app-debug.apk` on every push. Download it from the
+  workflow run's artifacts and install it on the phone (allow "install unknown apps").
+- **iOS app:** on a Mac with Xcode, run `npm run cap:sync && npx cap open ios`, then run it on your
+  device. Installing needs an Apple ID, and TestFlight needs a paid developer account.
+
+## Roadmap
+1. ✅ PWA + Capacitor scaffold, Hebrew/RTL, GPS, sunset times, weather scoring, 7-day strip
+2. Map (MapLibre) with OSM viewpoints, terrain horizon check, exact standing points, Waze links
+3. Saved spots, offline history, "rate this sunset"
+4. Native local notifications for "Epic sunset tonight"

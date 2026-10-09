@@ -1,0 +1,50 @@
+{
+  "appName": "Sunset Finder",
+  "tonight": "Tonight",
+  "today": "Today",
+  "locating": "Finding your location…",
+  "loadingForecast": "Loading forecast…",
+  "accuracy": "±{{m}} m accuracy",
+  "defaultLocation": "Default location: Jaffa (location permission denied)",
+  "refreshLocation": "Refresh location",
+  "copyCoords": "Copy coordinates",
+  "copied": "Copied",
+  "error": "Couldn't load the forecast. Please try again later.",
+  "retry": "Try again",
+  "language": "עברית",
+  "labels": {
+    "meh": "Meh",
+    "nice": "Nice",
+    "great": "Great",
+    "epic": "Epic"
+  },
+  "confidence": {
+    "high": "High confidence",
+    "medium": "Medium confidence",
+    "low": "Low confidence"
+  },
+  "times": {
+    "goldenHour": "Golden hour",
+    "arriveBy": "Arrive by",
+    "sunset": "Sunset",
+    "peakColor": "Peak colour",
+    "dusk": "Blue hour ends",
+    "direction": "Sunset direction"
+  },
+  "reasons": {
+    "canvas": "High clouds — a canvas for colour",
+    "tooMuchCloud": "Too cloudy",
+    "clearSky": "Totally clear sky — little colour",
+    "clearPath": "Open western horizon",
+    "blockedPath": "Low clouds block the light to the west",
+    "lowCloud": "Low cloud overhead",
+    "rain": "Rain expected at sunset",
+    "postStorm": "Clearing after rain",
+    "crisp": "Crisp, clear air",
+    "hazy": "Hazy",
+    "aerosolGlow": "Light dust — deeper reds",
+    "heavyDust": "Sharav / heavy dust"
+  },
+  "week": "This week",
+  "footer": "Weather data: Open-Meteo"
+}

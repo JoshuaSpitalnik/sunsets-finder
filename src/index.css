@@ -1,0 +1,260 @@
+/* Layout uses logical properties only (inline/block), so Hebrew RTL mirrors automatically. */
+:root {
+  --bg: #1a1225;
+  --bg-2: #2a1b33;
+  --text: #f6ece6;
+  --muted: #c4b2bd;
+  --meh: #8a7f95;
+  --nice: #f2b56b;
+  --great: #f08a4b;
+  --epic: #e8466b;
+  --good: #7bd389;
+  --bad: #f07f7f;
+  --radius: 14px;
+  font-family: 'Heebo Variable', system-ui, sans-serif;
+  color-scheme: dark;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: linear-gradient(to bottom, var(--bg) 0%, var(--bg-2) 60%, #4a2333 100%) fixed;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--bg-2);
+  border: 1px solid #ffffff22;
+  border-radius: var(--radius);
+  padding-block: 0.5rem;
+  padding-inline: 1rem;
+  cursor: pointer;
+}
+
+button.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--nice);
+  text-decoration: underline;
+}
+
+.app {
+  max-inline-size: 32rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  padding-block: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-bottom));
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topbar h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.status {
+  text-align: center;
+  margin-block: 3rem;
+}
+
+.location {
+  margin-block: 0.75rem;
+}
+
+.location p {
+  margin: 0;
+}
+
+.coords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: baseline;
+  font-size: 0.9rem;
+}
+
+.coords bdi {
+  font-variant-numeric: tabular-nums;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-block: 1rem;
+}
+
+.score-ring {
+  position: relative;
+  inline-size: 11rem;
+  aspect-ratio: 1;
+  --tone: var(--meh);
+}
+
+.score-nice { --tone: var(--nice); }
+.score-great { --tone: var(--great); }
+.score-epic { --tone: var(--epic); }
+
+.score-ring svg {
+  inline-size: 100%;
+  block-size: 100%;
+  rotate: -90deg;
+}
+
+.score-track,
+.score-value {
+  fill: none;
+  stroke-width: 10;
+}
+
+.score-track {
+  stroke: #ffffff18;
+}
+
+.score-value {
+  stroke: var(--tone);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.score-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-number {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.score-label {
+  color: var(--tone);
+  font-weight: 600;
+}
+
+.chips {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.chip {
+  font-size: 0.85rem;
+  padding-block: 0.2rem;
+  padding-inline: 0.6rem;
+  border-radius: 999px;
+  background: #ffffff10;
+}
+
+.chip-good { color: var(--good); }
+.chip-bad { color: var(--bad); }
+
+.time-band {
+  margin: 1rem 0;
+  background: #ffffff0a;
+  border-radius: var(--radius);
+  padding-block: 0.5rem;
+  padding-inline: 1rem;
+}
+
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  padding-block: 0.4rem;
+  border-block-end: 1px solid #ffffff10;
+}
+
+.time-row:last-child {
+  border-block-end: none;
+}
+
+.time-row dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.time-golden dt, .time-golden dd { color: var(--nice); }
+.time-sunset dt, .time-sunset dd { color: var(--great); font-weight: 600; }
+.time-peak dt, .time-peak dd { color: var(--epic); }
+.time-blue dt, .time-blue dd { color: #8fb3ff; }
+
+.compass {
+  display: inline-block;
+}
+
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: 0.5rem;
+  padding-inline: 0;
+  border-radius: 10px;
+  --tone: var(--meh);
+  border-block-end: 4px solid var(--tone);
+  min-inline-size: 0;
+}
+
+.day[aria-selected='true'] {
+  background: #ffffff1c;
+  outline: 2px solid var(--tone);
+}
+
+.day.confidence-low {
+  opacity: 0.75;
+}
+
+.day-name {
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-inline-size: 100%;
+}
+
+.day-score {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.day-label {
+  font-size: 0.7rem;
+  color: var(--tone);
+}
+
+footer {
+  text-align: center;
+  margin-block-start: 2rem;
+}
