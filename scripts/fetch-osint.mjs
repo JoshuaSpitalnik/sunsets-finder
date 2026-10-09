@@ -1,16 +1,29 @@
 #!/usr/bin/env node
 /**
- * Collects recent weather posts from public sources into one JSON file the app reads.
- * Run by the Pages workflow every 30 minutes: `node scripts/fetch-osint.mjs dist/osint.json`.
+ * Collects recent weather posts from public sources into one JSON file the app reads, and keeps a
+ * monthly archive of every post for searching past dates.
+ *
+ *   node scripts/fetch-osint.mjs dist/osint.json [--archive <dir>] [--backfill-until YYYY-MM-DD]
+ *
+ * Run by the Pages workflow every 30 minutes with `--archive` (a checkout of the `osint-data`
+ * branch). `--backfill-until` pages Telegram channels back in time (t.me/s/<handle>?before=<id>);
+ * IMS and news feeds only expose current items, so their history starts when archiving did.
  *
  * Only fetches and normalises; all keyword analysis happens in the app (src/lib/osint), so posts
  * the user shares from WhatsApp go through exactly the same logic. Never fails the build: a source
  * that errors is reported in `sources[].error` and skipped.
  */
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
-import { dirname } from 'node:path'
+import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 
-const out = process.argv[2] ?? 'dist/osint.json'
+const args = process.argv.slice(2)
+const flag = (name) => {
+  const i = args.indexOf(name)
+  return i >= 0 ? args[i + 1] : undefined
+}
+const out = args.find((a, i) => !a.startsWith('--') && !args[i - 1]?.startsWith('--')) ?? 'dist/osint.json'
+const archiveDir = flag('--archive')
+const backfillUntil = flag('--backfill-until')
 const sources = JSON.parse(await readFile(new URL('../src/lib/osint/sources.json', import.meta.url), 'utf8'))
 
 const MAX_AGE_DAYS = 7
@@ -48,9 +61,9 @@ async function get(url, encoding) {
   return new TextDecoder(encoding ?? 'utf-8').decode(buf)
 }
 
-/** Public channel preview (t.me/s/<handle>) — the last ~20 posts as HTML. */
-async function telegram(source) {
-  const html = await get(`https://t.me/s/${source.fetch.handle}`)
+/** Public channel preview (t.me/s/<handle>) — ~20 posts as HTML, the latest or those before a post number. */
+async function telegram(source, before) {
+  const html = await get(`https://t.me/s/${source.fetch.handle}${before ? `?before=${before}` : ''}`)
   const posts = []
   // One block per message; photo-only posts have no text and are skipped.
   for (const block of html.split('tgme_widget_message_wrap').slice(1)) {
@@ -98,20 +111,52 @@ async function rss(source) {
 }
 
 const FETCHERS = { telegram, 'ims-forecast': imsForecast, rss }
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+/** Telegram history: page back until `until` (YYYY-MM-DD) or the channel's start. */
+async function telegramHistory(source, until) {
+  const stop = Date.parse(`${until}T00:00:00Z`)
+  const all = []
+  let before
+  for (let page = 0; page < 600; page++) {
+    const got = await telegram(source, before)
+    if (got.length === 0) break
+    all.push(...got)
+    const oldest = got.reduce((a, b) => (Date.parse(a.publishedAt) < Date.parse(b.publishedAt) ? a : b))
+    const num = +oldest.id.split('/').pop()
+    if (Date.parse(oldest.publishedAt) < stop || !num || num === before) break
+    before = num
+    await sleep(700) // be gentle with t.me
+  }
+  return all.filter((p) => Date.parse(p.publishedAt) >= stop)
+}
+
+const isWeather = (source, p) =>
+  // Ignore links when topic-filtering: a channel footer like t.me/Weather_newsil isn't weather news.
+  !source.fetch.weatherOnly || WEATHER_RE.test(p.text.replace(/https?:\/\/\S+/g, ''))
+const tidy = (source, p) => ({ ...p, sourceId: source.id, text: p.text.slice(0, 2000) })
 
 const cutoff = Date.now() - MAX_AGE_DAYS * 86_400_000
 const report = []
 const posts = []
+/** Everything fetched this run (incl. backfill), for the archive. */
+const fetched = []
 for (const source of sources) {
   const fetcher = FETCHERS[source.fetch.type]
   if (!fetcher) continue // "share" sources come from the user's device
   try {
-    let got = (await fetcher(source)).filter((p) => p.text && Date.parse(p.publishedAt) >= cutoff)
-    // Ignore links when topic-filtering: a channel footer like t.me/Weather_newsil isn't weather news.
-    if (source.fetch.weatherOnly) got = got.filter((p) => WEATHER_RE.test(p.text.replace(/https?:\/\/\S+/g, '')))
-    got = got.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, MAX_PER_SOURCE)
-    posts.push(...got.map((p) => ({ ...p, sourceId: source.id, text: p.text.slice(0, 2000) })))
-    report.push({ id: source.id, ok: true, count: got.length })
+    const latest = (await fetcher(source)).filter((p) => p.text && isWeather(source, p)).map((p) => tidy(source, p))
+    fetched.push(...latest)
+    if (backfillUntil && source.fetch.type === 'telegram') {
+      const history = await telegramHistory(source, backfillUntil)
+      fetched.push(...history.filter((p) => p.text && isWeather(source, p)).map((p) => tidy(source, p)))
+    }
+    const recent = latest
+      .filter((p) => Date.parse(p.publishedAt) >= cutoff)
+      .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
+      .slice(0, MAX_PER_SOURCE)
+    posts.push(...recent)
+    report.push({ id: source.id, ok: true, count: recent.length })
   } catch (err) {
     report.push({ id: source.id, ok: false, error: String(err?.message ?? err) })
   }
@@ -121,3 +166,41 @@ posts.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
 await mkdir(dirname(out), { recursive: true })
 await writeFile(out, JSON.stringify({ generatedAt: new Date().toISOString(), sources: report, posts }))
 console.log(`osint: ${posts.length} posts → ${out}`, report.map((r) => `${r.id}:${r.ok ? r.count : 'ERR ' + r.error}`).join(' '))
+
+/**
+ * Archive: one file per month (by publish date, Israel time) holding every post ever seen, merged
+ * by id so re-fetching never duplicates; index.json lists the months and their post counts.
+ */
+if (archiveDir) {
+  await mkdir(archiveDir, { recursive: true })
+  const monthOf = (iso) =>
+    new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit' }).format(new Date(iso))
+  const byMonth = new Map()
+  for (const p of fetched) {
+    const m = monthOf(p.publishedAt)
+    if (!byMonth.has(m)) byMonth.set(m, [])
+    byMonth.get(m).push(p)
+  }
+  let added = 0
+  for (const [month, incoming] of byMonth) {
+    const file = join(archiveDir, `${month}.json`)
+    let existing = []
+    try {
+      existing = JSON.parse(await readFile(file, 'utf8')).posts ?? []
+    } catch {
+      // New month.
+    }
+    const ids = new Set(existing.map((p) => p.id))
+    const fresh = incoming.filter((p) => !ids.has(p.id) && ids.add(p.id))
+    if (fresh.length === 0) continue
+    added += fresh.length
+    const merged = [...existing, ...fresh].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))
+    await writeFile(file, JSON.stringify({ month, posts: merged }))
+  }
+  const months = {}
+  for (const name of (await readdir(archiveDir)).filter((n) => /^\d{4}-\d{2}\.json$/.test(n)).sort()) {
+    months[name.slice(0, 7)] = (JSON.parse(await readFile(join(archiveDir, name), 'utf8')).posts ?? []).length
+  }
+  await writeFile(join(archiveDir, 'index.json'), JSON.stringify({ updatedAt: new Date().toISOString(), months }))
+  console.log(`archive: +${added} posts, ${Object.keys(months).length} months in ${archiveDir}`)
+}

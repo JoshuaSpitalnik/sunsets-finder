@@ -34,7 +34,8 @@ export function findDayRefs(segment: string, base: Date): DayRef[] {
   }
   const word = (body: string) => new RegExp(`(?<![${HEB}])(?:${body})(?![${HEB}])`, 'g')
 
-  add(word('היום|הערב|הלילה|בערב|ערב\\s+זה'), () => [base])
+  // "הערב" is this evening; "בערב" is just "in the evening" (as in "מחר בערב") and names no day.
+  add(word('היום|הערב|הלילה|ערב\\s+זה'), () => [base])
   add(/\b(?:today|tonight|this\s+evening)\b/gi, () => [base])
   add(word('מחר|למחר|ומחר'), () => [addDays(base, 1)])
   add(/\btomorrow\b/gi, () => [addDays(base, 1)])

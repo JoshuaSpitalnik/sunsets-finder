@@ -227,6 +227,11 @@ export default function App() {
           now={now}
           shareDraft={shareDraft}
           onDraftDone={() => setShareDraft(undefined)}
+          onOpenHistory={(focus) => {
+            setHistory({ place, focus })
+            setTab('history')
+            window.scrollTo(0, 0)
+          }}
         />
       )}
 

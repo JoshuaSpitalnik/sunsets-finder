@@ -1891,3 +1891,60 @@ button {
   block-size: 28px;
   font-size: 12px;
 }
+
+/* Search past updates */
+.search-card {
+  gap: 12px;
+}
+
+.search-input {
+  font: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--ground);
+  border: 0;
+  border-radius: 14px;
+  padding-block: 12px;
+  padding-inline: 14px;
+  min-inline-size: 0;
+}
+
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.preset-chip {
+  border: 0;
+  border-radius: 16px;
+  padding-block: 7px;
+  padding-inline: 12px;
+  background: var(--chip);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.preset-chip[aria-pressed='true'] {
+  background: var(--text);
+  color: #fff;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.check-row input {
+  inline-size: 18px;
+  block-size: 18px;
+  accent-color: #e06a33;
+}
+
+.show-more {
+  align-self: center;
+}

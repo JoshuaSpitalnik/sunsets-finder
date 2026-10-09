@@ -55,6 +55,11 @@ describe('analyzePost', () => {
     expect(analyzePost(post, 'north').leads[0].weight).toBeCloseTo(-2 * 0.3)
   })
 
+  it('finds a sunset description a few words apart', () => {
+    const post = { ...TAL, text: 'היא גם זו שהפכה את השקיעה לכל כך אדומה הערב.' }
+    expect(cues(post)).toEqual(['2026-10-05 sunset 4.0'])
+  })
+
   it('reads English posts too', () => {
     const post = { ...TAL, text: 'Tomorrow: high clouds should give a colourful sunset along the coast.' }
     // "should" is a confident forecast, not a hedge.
@@ -69,6 +74,7 @@ describe('findDayRefs', () => {
     expect(iso('בשלישי גשם')).toEqual(['2026-10-06'])
     expect(iso('*היום (שני)*')).toEqual(['2026-10-05', '2026-10-05'])
     expect(iso('מחרתיים')).toEqual(['2026-10-07'])
+    expect(iso('מחר בערב')).toEqual(['2026-10-06'])
     expect(iso('🗓 שבת, 10/10')).toEqual(['2026-10-10', '2026-10-10'])
     expect(iso('בסוף השבוע')).toEqual(['2026-10-09', '2026-10-10'])
   })

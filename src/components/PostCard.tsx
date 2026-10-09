@@ -15,6 +15,8 @@ interface Props {
 }
 
 const LONG_POST = 320
+/** Older than this, show the date instead of "280 days ago". */
+const OLD_MS = 6 * 86_400_000
 
 /** Days this post has clues about, one chip per day+clue: "שני · ענני נוצה ▲". */
 function leadChips(leads: Lead[]) {
@@ -63,7 +65,10 @@ export function PostCard({ post, region, now, reliability, onRemove }: Props) {
           <span className="post-source">{name}</span>
           <span className="muted-sm">
             {source && t(`osint.kind.${source.kind}`)}
-            {post.shared && ` · ${t('osint.shared')}`} · {f.ago(post.publishedAt, now)}
+            {post.shared && ` · ${t('osint.shared')}`} ·{' '}
+            {now - Date.parse(post.publishedAt) > OLD_MS
+              ? `${f.full(new Date(post.publishedAt))}, ${f.time(new Date(post.publishedAt))}`
+              : f.ago(post.publishedAt, now)}
           </span>
         </span>
         <span className={`reliability reliability-${reliability}`}>{t(`osint.reliability.${reliability}`)}</span>

@@ -259,7 +259,27 @@
     "hedged": "maybe",
     "otherRegion": "other area",
     "aboutDay": "about {{day}}",
-    "leadsCount": "{{n}} clues"
+    "leadsCount": "{{n}} clues",
+    "mode": {
+      "latest": "Latest",
+      "search": "Search past"
+    },
+    "search": {
+      "placeholder": "Words to find, e.g. ענני נוצה, sunset",
+      "yesterday": "Yesterday",
+      "week": "7 days",
+      "month": "30 days",
+      "custom": "Dates…",
+      "since": "Archive goes back to {{date}}",
+      "archiveError": "Couldn't load the archive. Only posts added on this device are searched.",
+      "dayVerdict": "What forecasters said about {{date}}",
+      "noClues": "No sunset clues for this day.",
+      "actual": "How did it actually score? Open in History",
+      "searching": "Searching…",
+      "results": "{{n}} posts · {{from}} – {{to}}",
+      "none": "No posts match.",
+      "more": "Show {{n}} more"
+    }
   },
   "cues": {
     "sunset": "Nice sunset mentioned",

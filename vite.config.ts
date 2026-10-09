@@ -39,6 +39,12 @@ export default defineConfig({
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2}'],
         runtimeCaching: [
           {
+            // Past months of forecasters' posts rarely change: serve from cache, refresh in the background.
+            urlPattern: /\/osint-archive\/.*\.json$/,
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'osint-archive', expiration: { maxEntries: 30 } },
+          },
+          {
             // Forecasters' feed: fresh when online, last copy offline.
             urlPattern: /\/osint\.json$/,
             handler: 'NetworkFirst',

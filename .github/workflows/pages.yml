@@ -9,7 +9,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # contents: write lets the job push new posts to the osint-data archive branch.
+  contents: write
   pages: write
   id-token: write
 
@@ -25,6 +26,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Check out the post archive
+        uses: actions/checkout@v4
+        with:
+          ref: osint-data
+          path: osint-data
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -33,7 +39,16 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Collect forecasters' posts
-        run: node scripts/fetch-osint.mjs dist/osint.json
+        run: node scripts/fetch-osint.mjs dist/osint.json --archive osint-data/archive
+      - name: Save new posts to the archive branch
+        working-directory: osint-data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add archive
+          git diff --cached --quiet || (git commit -m "Archive forecasters' posts" && git push)
+      - name: Publish the archive with the app
+        run: cp -r osint-data/archive dist/osint-archive
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

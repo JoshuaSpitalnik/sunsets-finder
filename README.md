@@ -43,6 +43,12 @@ Forecasters often spot what models miss: "ענני נוצה שעשויים לג�
     the app (Android PWA share target) or paste it in Updates.
 - **Collection:** the Pages workflow runs every 30 minutes, and `scripts/fetch-osint.mjs` writes
   `osint.json` next to the app.
+- **Archive and search:** every post is kept in monthly files on the `osint-data` branch, published
+  at `/osint-archive/`. Telegram history was backfilled from 2025-01-01
+  (`node scripts/fetch-osint.mjs out.json --archive <dir> --backfill-until 2025-01-01`); IMS and news
+  history starts when archiving began. Updates → "Search past" finds posts by words and dates. A
+  single day also shows what forecasters said about it, with a link to that day's recorded-weather
+  score in History.
 - **Analysis** (`src/lib/osint/`) runs in the app, so shared posts go through the same logic:
   - it finds Hebrew/English clue words (ענני נוצה, עננות גבוהה, שקיעה יפה, התבהרות, גשם, אובך, שרב, ערפל…);
   - it ties each clue to a day (היום, מחר, בשלישי, (שני), 10/10, בעוד שבוע…);
