@@ -18,12 +18,19 @@ Each day gets a 0–100 score, a label (סתמית / נחמדה / מעולה / �
 confidence level that drops with lead time. All weights live in `src/lib/score.ts`.
 
 ## Screens
-- **הערב / Tonight**: score, reasons, simulated sky, timings and a 7-day strip for your location.
-- **מפה / Map**: tap anywhere to see the sunset score there and the sunset direction line. You also get
-  Waze/Google Maps links and **real sunset photos taken nearby** (Wikimedia Commons). Search an address,
-  or set any point as your location.
-- **היסטוריה / History**: search past sunsets (last 7/30/90 days or any range since 2022, up to 92 days),
-  ranked from the actual recorded weather. Every photo's "how did that day score?" link jumps here.
+Design: Claude Design handoff "Sunset Finder" (warm light theme, Newsreader + Geist, with Frank Ruhl Libre + Heebo for Hebrew).
+- **הערב / Tonight**: a full-bleed simulated sky with tonight's score and summary. Below it, a sheet with
+  "be there by", a countdown, a 7-day strip, the light timeline and facing direction, the reasons, and
+  reminder toggles. From golden hour until blue hour ends it switches to a dark **evening mode** with a
+  countdown ring.
+- **מפה / Map**: drag the pin or tap anywhere. The pin shows its score, and a live sunset-direction line
+  follows it. The sheet has timings, a summary, Use this spot, Save, Waze, Google Maps, and **real sunset
+  photos nearby** (Wikimedia Commons).
+- **מקומות / Spots**: saved spots ranked by tonight's forecast, starting with five west-facing classics.
+- **היסטוריה / History**: a calendar heatmap of past sunsets (7/30/90 days or a custom range since
+  2022), scored from recorded weather, with the best days of the range.
+- **Notifications**: a reminder 30 minutes before golden hour, plus an alert when a saved spot scores 55+.
+  Both are reliable in the Android/iOS apps; the PWA delivers them only while it's open.
 
 ## Development
 ```bash
@@ -45,6 +52,6 @@ npm run build      # PWA build in dist/
 ## Roadmap
 1. ✅ PWA + Capacitor scaffold, Hebrew/RTL, GPS, sunset times, weather scoring, 7-day strip
 2. ✅ Map with tap-to-explore, address search, sunset line, nearby photos; history search
-3. OSM viewpoints, terrain horizon check, exact standing points
-4. Saved spots, offline history, "rate this sunset"
-5. Native local notifications for "Epic sunset tonight"
+3. ✅ Redesign: Spots, evening mode, calendar history, local notifications
+4. OSM viewpoints, terrain horizon check, exact standing points
+5. "Rate this sunset" and tuning the model to your ratings

@@ -4,7 +4,7 @@ const config: CapacitorConfig = {
   appId: 'com.sunsetsfinder.app',
   appName: 'שקיעות',
   webDir: 'dist',
-  backgroundColor: '#1a1225',
+  backgroundColor: '#F6F3EE',
 }
 
 export default config

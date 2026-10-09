@@ -1,40 +1,44 @@
-import { Map as MapLibre, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl'
+import { Map as MapLibre, Marker, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
-import type { Feature, FeatureCollection } from 'geojson'
+import type { FeatureCollection } from 'geojson'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { PointPanel } from '../components/PointPanel'
+import { IconLocate, IconSearch } from '../components/Icons'
+import { MapSheet } from '../components/MapSheet'
 import { destination, type LatLng } from '../lib/geo'
-import { searchPlaces, type Place } from '../lib/location'
+import { reverseGeocode, searchPlaces, type Place } from '../lib/location'
 import { getSunsetTimes } from '../lib/sun'
+import { LABEL_COLOR } from '../lib/theme'
+import { useForecast } from '../lib/useForecasts'
 
 // MapLibre looks for its worker next to its own file, which bundling moves — point it at the emitted asset.
 setWorkerUrl(workerUrl)
 
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty'
-/** How far to draw the sunset direction line from a point. */
-const SUN_LINE_KM = 40
+const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron'
+/** Length of the sunset-direction line drawn from the pin. */
+const SUN_LINE_KM = 30
 
 interface Props {
+  /** Your current place (blue dot). */
   place: Place
-  onSetPlace: (place: Place) => void
-  onOpenHistory: (place: Place, date: Date) => void
+  /** Where the pin starts (a spot opened from Spots/Tonight), or your place. */
+  initialPin: Place
+  isSaved: (p: LatLng) => boolean
+  onToggleSave: (p: Place) => void
+  onUse: (p: Place) => void
+  onOpenHistory: (p: Place, date: Date) => void
 }
 
-const point = (p: LatLng): Feature => ({
-  type: 'Feature',
-  properties: {},
-  geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
-})
-const empty: FeatureCollection = { type: 'FeatureCollection', features: [] }
-
-function sunLine(p: LatLng): Feature {
+function sunGeo(p: LatLng): FeatureCollection {
   const end = destination(p, getSunsetTimes(new Date(), p).azimuth, SUN_LINE_KM)
   return {
-    type: 'Feature',
-    properties: {},
-    geometry: { type: 'LineString', coordinates: [[p.lng, p.lat], [end.lng, end.lat]] },
+    type: 'FeatureCollection',
+    features: [
+      { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [[p.lng, p.lat], [end.lng, end.lat]] } },
+      { type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [end.lng, end.lat] } },
+    ],
   }
 }
 
@@ -48,15 +52,44 @@ function localizeLabels(map: MapLibre, lang: string) {
   }
 }
 
-export default function MapScreen({ place, onSetPlace, onOpenHistory }: Props) {
+export default function MapScreen({ place, initialPin, isSaved, onToggleSave, onUse, onOpenHistory }: Props) {
   const { t, i18n } = useTranslation()
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibre | null>(null)
+  const pinMarker = useRef<Marker | null>(null)
+  const meMarker = useRef<Marker | null>(null)
+  // The pin's DOM node lives inside MapLibre; React renders the score glyph into it via a portal.
+  const [pinEl] = useState(() => {
+    const el = document.createElement('div')
+    el.className = 'map-pin'
+    return el
+  })
   const [ready, setReady] = useState(false)
-  const [picked, setPicked] = useState<Place | undefined>()
+  const [pin, setPin] = useState<Place>(initialPin)
+  const [hint, setHint] = useState(true)
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<Place[] | undefined>()
-  const [searchError, setSearchError] = useState(false)
+  const [searchState, setSearchState] = useState<'idle' | 'searching' | 'none' | 'error'>('idle')
+  const forecast = useForecast(pin)
+  const day = forecast.status === 'ready' ? forecast.days[0] : undefined
+  const lang = i18n.language
+  const revId = useRef(0)
+
+  const dropPin = (at: LatLng, named?: { name?: string; area?: string }) => {
+    setHint(false)
+    setPin({ lat: at.lat, lng: at.lng, name: named?.name, area: named?.area, source: 'map' })
+    if (named?.name) return
+    const id = ++revId.current
+    reverseGeocode(at, lang)
+      .then((r) => {
+        if (r && id === revId.current) setPin((p) => ({ ...p, name: r.name, area: r.area }))
+      })
+      .catch(() => {})
+  }
+  // Map event handlers are bound once; keep them pointed at the latest closure.
+  const dropRef = useRef(dropPin)
+  useEffect(() => {
+    dropRef.current = dropPin
+  })
 
   // Create the map once.
   useEffect(() => {
@@ -64,130 +97,141 @@ export default function MapScreen({ place, onSetPlace, onOpenHistory }: Props) {
     const map = new MapLibre({
       container: container.current,
       style: STYLE_URL,
-      center: [place.lng, place.lat],
-      zoom: 12,
+      center: [initialPin.lng, initialPin.lat],
+      zoom: 11.3,
+      attributionControl: { compact: true },
     })
     mapRef.current = map
+
+    const me = document.createElement('div')
+    me.className = 'map-me'
+    meMarker.current = new Marker({ element: me }).setLngLat([place.lng, place.lat]).addTo(map)
+
+    const marker = new Marker({ element: pinEl, draggable: true, anchor: 'bottom' })
+      .setLngLat([initialPin.lng, initialPin.lat])
+      .addTo(map)
+    pinMarker.current = marker
+    marker.on('dragstart', () => setHint(false))
+    marker.on('drag', () => {
+      const p = marker.getLngLat()
+      map.getSource<GeoJSONSource>('sun')?.setData(sunGeo({ lat: p.lat, lng: p.lng }))
+    })
+    marker.on('dragend', () => {
+      const p = marker.getLngLat()
+      dropRef.current({ lat: p.lat, lng: p.lng })
+    })
+    map.on('click', (e) => dropRef.current({ lat: e.lngLat.lat, lng: e.lngLat.lng }))
+
     map.on('load', () => {
-      map.addSource('me', { type: 'geojson', data: empty })
-      map.addSource('picked', { type: 'geojson', data: empty })
-      map.addSource('sunline', { type: 'geojson', data: empty })
+      map.addSource('sun', { type: 'geojson', data: sunGeo(initialPin) })
       map.addLayer({
-        id: 'sunline',
+        id: 'sun-glow',
         type: 'line',
-        source: 'sunline',
-        paint: { 'line-color': '#f08a4b', 'line-width': 3, 'line-dasharray': [2, 1.5] },
+        source: 'sun',
+        filter: ['==', '$type', 'LineString'],
+        paint: { 'line-color': '#F2A061', 'line-width': 10, 'line-opacity': 0.25, 'line-blur': 3 },
       })
       map.addLayer({
-        id: 'me',
-        type: 'circle',
-        source: 'me',
-        paint: { 'circle-radius': 8, 'circle-color': '#4a90ff', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' },
+        id: 'sun-line',
+        type: 'line',
+        source: 'sun',
+        filter: ['==', '$type', 'LineString'],
+        paint: { 'line-color': '#E06A33', 'line-width': 2.5, 'line-dasharray': [1.5, 1.5] },
       })
       map.addLayer({
-        id: 'picked',
+        id: 'sun-end',
         type: 'circle',
-        source: 'picked',
-        paint: { 'circle-radius': 9, 'circle-color': '#e8466b', 'circle-stroke-width': 3, 'circle-stroke-color': '#fff' },
+        source: 'sun',
+        filter: ['==', '$type', 'Point'],
+        paint: { 'circle-radius': 7, 'circle-color': '#F2A061', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 },
       })
       setReady(true)
-    })
-    map.on('click', (e) => {
-      setPicked({ lat: e.lngLat.lat, lng: e.lngLat.lng, source: 'map' })
     })
     return () => {
       map.remove()
       mapRef.current = null
     }
-    // The map is created once; later place changes are applied by the effect below.
+    // The map is created once; later changes are applied by the effects below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    if (ready && mapRef.current) localizeLabels(mapRef.current, i18n.language)
-  }, [ready, i18n.language])
+    if (ready && mapRef.current) localizeLabels(mapRef.current, lang)
+  }, [ready, lang])
 
   useEffect(() => {
-    const map = mapRef.current
-    if (!ready || !map) return
-    map.getSource<GeoJSONSource>('me')?.setData(point(place))
-  }, [ready, place])
+    meMarker.current?.setLngLat([place.lng, place.lat])
+  }, [place.lat, place.lng])
 
   useEffect(() => {
-    const map = mapRef.current
-    if (!ready || !map) return
-    const target = picked ?? place
-    map.getSource<GeoJSONSource>('picked')?.setData(picked ? point(picked) : empty)
-    map.getSource<GeoJSONSource>('sunline')?.setData(sunLine(target))
-  }, [ready, picked, place])
+    pinMarker.current?.setLngLat([pin.lng, pin.lat])
+    if (ready) mapRef.current?.getSource<GeoJSONSource>('sun')?.setData(sunGeo(pin))
+  }, [ready, pin])
 
-  const flyTo = (p: LatLng) => mapRef.current?.flyTo({ center: [p.lng, p.lat], zoom: 14 })
+  const flyTo = (p: LatLng, zoom = 13) => mapRef.current?.flyTo({ center: [p.lng, p.lat], zoom, duration: 900 })
 
   const onSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!query.trim()) return
-    setSearchError(false)
+    const q = query.trim()
+    if (!q) return
+    setSearchState('searching')
     try {
-      setResults(await searchPlaces(query.trim(), i18n.language))
+      const [first] = await searchPlaces(q, lang)
+      if (!first) return setSearchState('none')
+      setSearchState('idle')
+      dropPin(first, { name: first.name, area: first.area })
+      flyTo(first)
     } catch {
-      setSearchError(true)
+      setSearchState('error')
     }
   }
 
+  const pinColor = day ? LABEL_COLOR[day.result.label] : '#9C958B'
+
   return (
     <main className="map-screen">
-      <form className="map-search" onSubmit={onSearch}>
+      <div ref={container} className="map-canvas" />
+      {createPortal(
+        <svg width="48" height="58" viewBox="0 0 48 58" role="img" aria-label={day ? `${day.result.score}` : ''}>
+          <path d="M24 56C24 56 5 36 5 22a19 19 0 0 1 38 0c0 14-19 34-19 34z" fill={pinColor} stroke="#fff" strokeWidth="3" />
+          <text x="24" y="28" textAnchor="middle" fontSize="15" fontWeight="700" fill="#fff">
+            {day ? day.result.score : '…'}
+          </text>
+        </svg>,
+        pinEl,
+      )}
+
+      <form className="map-search glass" onSubmit={onSearch} role="search">
+        <IconSearch />
         <input
           type="search"
           value={query}
           placeholder={t('map.searchPlaceholder')}
-          onChange={(e) => setQuery(e.target.value)}
           aria-label={t('map.searchPlaceholder')}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            if (searchState !== 'searching') setSearchState('idle')
+          }}
         />
-        <button type="submit">{t('map.search')}</button>
+        {searchState === 'searching' && <span className="muted-sm">{t('map.searching')}</span>}
+        {searchState === 'none' && <span className="muted-sm">{t('map.noResults')}</span>}
+        {searchState === 'error' && <span className="muted-sm">{t('map.searchError')}</span>}
       </form>
-      {searchError && <p className="muted">{t('map.searchError')}</p>}
-      {results && (
-        <ul className="search-results">
-          {results.length === 0 && <li className="muted">{t('map.noResults')}</li>}
-          {results.map((r) => (
-            <li key={`${r.lat},${r.lng}`}>
-              <button
-                className="link"
-                onClick={() => {
-                  setPicked(r)
-                  setResults(undefined)
-                  flyTo(r)
-                }}
-              >
-                {r.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {hint && <div className="map-hint">{t('map.hint')}</div>}
 
-      <div className="map-wrap">
-        <div ref={container} className="map" />
-        <button className="map-recenter" onClick={() => flyTo(place)} aria-label={t('map.recenter')}>
-          ◎
+      <div className="map-bottom">
+        <button className="map-locate glass" aria-label={t('map.locate')} onClick={() => flyTo(place, 12.5)}>
+          <IconLocate />
         </button>
-      </div>
-      <p className="muted small legend">
-        <span className="dot dot-me" /> {t('map.legendMe')} <span className="dot dot-picked" /> {t('map.legendPicked')}{' '}
-        <span className="dash" /> {t('map.legendLine')}
-      </p>
-
-      {picked ? (
-        <PointPanel
-          key={`${picked.lat},${picked.lng}`}
-          point={picked}
-          onSetPlace={onSetPlace}
-          onOpenHistory={(date, named) => onOpenHistory(named, date)}
+        <MapSheet
+          pin={pin}
+          forecast={forecast}
+          saved={isSaved(pin)}
+          onUse={() => onUse(pin)}
+          onToggleSave={() => onToggleSave(pin)}
+          onCheckDate={(date) => onOpenHistory(pin, date)}
         />
-      ) : (
-        <p className="status">{t('map.tapHint')}</p>
-      )}
+      </div>
     </main>
   )
 }

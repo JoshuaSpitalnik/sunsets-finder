@@ -1,17 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DayDetail } from '../components/DayDetail'
-import { PlaceHeader } from '../components/PlaceHeader'
-import { localeFor } from '../i18n'
-import type { Place } from '../lib/location'
+import { CalendarHeatmap } from '../components/CalendarHeatmap'
+import { useFormat } from '../i18n/useFormat'
+import type { LatLng } from '../lib/geo'
+import { summaryKeys } from '../lib/score'
+import { LABEL_COLOR } from '../lib/theme'
 import { addDays, fetchSunsetHistory, HISTORY_START, isoDate, MAX_HISTORY_DAYS, type DayForecast } from '../lib/weather'
 
 interface Props {
-  place: Place
+  place: LatLng
+  placeName: string
   /** Jump straight to this day (e.g. the date a photo was taken). */
   focusDate?: Date
-  onUseGps: () => void
-  onOpenMap: () => void
 }
 
 interface Range {
@@ -19,43 +19,42 @@ interface Range {
   to: Date
 }
 
+type Preset = 7 | 30 | 90 | 'custom'
 type State = { status: 'loading' } | { status: 'ready'; days: DayForecast[] } | { status: 'error' }
 
-const PRESETS = [7, 30, 90]
-const BEST_COUNT = 3
+const PRESETS = [7, 30, 90] as const
 
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+const yesterday = () => addDays(startOfDay(new Date()), -1)
 const parseInputDate = (s: string) => {
   const [y, m, d] = s.split('-').map(Number)
   return new Date(y, m - 1, d)
 }
-const sameDay = (a: Date, b: Date) => isoDate(a) === isoDate(b)
 
 function lastDays(n: number): Range {
-  const to = addDays(startOfDay(new Date()), -1)
+  const to = yesterday()
   return { from: addDays(to, -(n - 1)), to }
 }
 
+/** A week around a date, clamped to yesterday. */
 function rangeAround(date: Date): Range {
-  const yesterday = addDays(startOfDay(new Date()), -1)
-  const to = addDays(startOfDay(date), 3) > yesterday ? yesterday : addDays(startOfDay(date), 3)
-  return { from: addDays(startOfDay(date), -3), to }
+  const day = startOfDay(date)
+  const to = addDays(day, 3) > yesterday() ? yesterday() : addDays(day, 3)
+  return { from: addDays(day, -3), to }
 }
 
-/** Search past sunsets: score every day in a range from archived weather and rank them. */
-export function History({ place, focusDate, onUseGps, onOpenMap }: Props) {
-  const { t, i18n } = useTranslation()
+/** Past sunsets at a place, scored from recorded weather: a calendar heatmap plus the best days. */
+export function History({ place, placeName, focusDate }: Props) {
+  const { t } = useTranslation()
+  const f = useFormat()
+  const [preset, setPreset] = useState<Preset>(focusDate ? 'custom' : 30)
   const [range, setRange] = useState<Range>(() => (focusDate ? rangeAround(focusDate) : lastDays(30)))
+  const [customOpen, setCustomOpen] = useState(Boolean(focusDate))
   const [draft, setDraft] = useState(() => ({ from: isoDate(range.from), to: isoDate(range.to) }))
   const [state, setState] = useState<State>({ status: 'loading' })
   const [selected, setSelected] = useState<string | undefined>(focusDate && isoDate(focusDate))
-  const [sortByScore, setSortByScore] = useState(false)
+  const [maxDate] = useState(() => isoDate(yesterday()))
   const { lat, lng } = place
-  const detailRef = useRef<HTMLElement>(null)
-
-  const fmt = new Intl.DateTimeFormat(localeFor(i18n.language), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-  const [maxDate] = useState(() => isoDate(addDays(new Date(), -1)))
-  const minDate = isoDate(HISTORY_START)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -67,16 +66,12 @@ export function History({ place, focusDate, onUseGps, onOpenMap }: Props) {
     return () => controller.abort()
   }, [lat, lng, range])
 
-  const showDay = (d: DayForecast) => {
-    setSelected(isoDate(d.date))
-    requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-  }
-
-  const search = (next: Range) => {
+  const show = (next: Range, p: Preset) => {
     let { from, to } = next
     if (to < from) [from, to] = [to, from]
     if (from < HISTORY_START) from = HISTORY_START
-    if ((to.getTime() - from.getTime()) / 86_400_000 >= MAX_HISTORY_DAYS) to = addDays(from, MAX_HISTORY_DAYS - 1)
+    if ((+to - +from) / 86_400_000 >= MAX_HISTORY_DAYS) to = addDays(from, MAX_HISTORY_DAYS - 1)
+    setPreset(p)
     setDraft({ from: isoDate(from), to: isoDate(to) })
     setState({ status: 'loading' })
     setSelected(undefined)
@@ -84,99 +79,117 @@ export function History({ place, focusDate, onUseGps, onOpenMap }: Props) {
   }
 
   const days = state.status === 'ready' ? state.days : []
-  const best = [...days].sort((a, b) => b.result.score - a.result.score).slice(0, BEST_COUNT)
-  const listed = sortByScore ? [...days].sort((a, b) => b.result.score - a.result.score) : [...days].reverse()
-  const selectedDay = days.find((d) => isoDate(d.date) === selected)
+  const ranked = [...days].sort((a, b) => b.result.score - a.result.score)
+  const picked = days.find((d) => isoDate(d.date) === selected)
+  const shown = picked ?? ranked[0]
+  const summary = shown && summaryKeys(shown.result)
 
   return (
-    <main className="history">
-      <PlaceHeader place={place} onUseGps={onUseGps} onOpenMap={onOpenMap} />
+    <main className="page">
+      <header className="page-head">
+        <h1>{t('history.title')}</h1>
+        <p>{t('history.sub', { place: placeName })}</p>
+      </header>
 
-      <section className="search-panel">
-        <h2>{t('history.title')}</h2>
-        <div className="presets">
-          {PRESETS.map((n) => (
-            <button key={n} onClick={() => search(lastDays(n))}>
-              {t('history.lastDays', { n })}
-            </button>
-          ))}
-        </div>
+      <div className="segmented" role="group">
+        {PRESETS.map((n) => (
+          <button key={n} aria-pressed={preset === n} onClick={() => show(lastDays(n), n)}>
+            {t('history.days', { n })}
+          </button>
+        ))}
+      </div>
+      <button className="text-link custom-link" aria-expanded={customOpen} onClick={() => setCustomOpen(!customOpen)}>
+        {t('history.custom')}
+      </button>
+      {customOpen && (
         <form
-          className="range-form"
+          className="card range-form"
           onSubmit={(e) => {
             e.preventDefault()
-            if (draft.from && draft.to) search({ from: parseInputDate(draft.from), to: parseInputDate(draft.to) })
+            if (draft.from && draft.to) show({ from: parseInputDate(draft.from), to: parseInputDate(draft.to) }, 'custom')
           }}
         >
           <label>
             {t('history.from')}
-            <input type="date" min={minDate} max={maxDate} value={draft.from} onChange={(e) => setDraft({ ...draft, from: e.target.value })} />
+            <input
+              type="date"
+              min={isoDate(HISTORY_START)}
+              max={maxDate}
+              value={draft.from}
+              onChange={(e) => setDraft({ ...draft, from: e.target.value })}
+            />
           </label>
           <label>
             {t('history.to')}
-            <input type="date" min={minDate} max={maxDate} value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} />
+            <input
+              type="date"
+              min={isoDate(HISTORY_START)}
+              max={maxDate}
+              value={draft.to}
+              onChange={(e) => setDraft({ ...draft, to: e.target.value })}
+            />
           </label>
-          <button type="submit">{t('history.search')}</button>
+          <button type="submit" className="primary-button small">
+            {t('history.search')}
+          </button>
+          <p className="fine-print">{t('history.limits', { days: MAX_HISTORY_DAYS })}</p>
         </form>
-        <p className="muted small">{t('history.limits', { days: MAX_HISTORY_DAYS })}</p>
-      </section>
+      )}
 
-      {state.status === 'loading' && <p className="status">{t('loadingForecast')}</p>}
+      {state.status === 'loading' && <p className="status">{t('loading')}</p>}
       {state.status === 'error' && (
         <div className="status">
           <p>{t('error')}</p>
-          <button onClick={() => search(range)}>{t('retry')}</button>
+          <button className="chip-button" onClick={() => show(range, preset)}>
+            {t('retry')}
+          </button>
         </div>
       )}
 
-      {state.status === 'ready' && (
+      {state.status === 'ready' && shown && summary && (
         <>
-          {selectedDay && (
-            <section className="selected-day" ref={detailRef}>
-              <h3>{fmt.format(selectedDay.date)}</h3>
-              <DayDetail day={selectedDay} />
-            </section>
-          )}
+          <section className="card day-card">
+            <div className="day-card-head">
+              <div className="day-card-when">
+                <span className="muted-sm">{picked ? t('history.selected') : t('history.bestInRange')}</span>
+                <span className="day-card-date">{f.full(shown.date)}</span>
+                <span className="muted-sm">{t('history.sunset', { time: f.time(shown.times.sunset) })}</span>
+              </div>
+              <div className="day-card-score" style={{ color: LABEL_COLOR[shown.result.label] }}>
+                <bdi className="serif-number">{shown.result.score}</bdi>
+                <span>{t(`labels.${shown.result.label}`)}</span>
+              </div>
+            </div>
+            <p className="serif-summary">
+              {t(summary.head)} {t(summary.detail)}
+            </p>
+          </section>
 
-          <section>
-            <h3>{t('history.best')}</h3>
-            <ol className="best">
-              {best.map((d) => (
+          <section className="card calendar-card">
+            <div className="calendar-title">
+              <h2 className="card-title">
+                {f.monthDay(days[0].date)} – {f.monthDay(days[days.length - 1].date)}
+              </h2>
+              <span className="fine-print">{t('history.tapDay')}</span>
+            </div>
+            <CalendarHeatmap days={days} selectedKey={isoDate(shown.date)} onSelect={setSelected} />
+          </section>
+
+          <section className="card list-card">
+            <h2 className="card-title list-title">{t('history.bestInRange')}</h2>
+            <ol className="best-list">
+              {ranked.slice(0, 3).map((d, i) => (
                 <li key={isoDate(d.date)}>
-                  <button className={`best-day score-${d.result.label}`} onClick={() => showDay(d)}>
-                    <bdi className="day-score">{d.result.score}</bdi>
-                    <span>{fmt.format(d.date)}</span>
-                    <span className="day-label">{t(`labels.${d.result.label}`)}</span>
+                  <button className="best-row-button" onClick={() => setSelected(isoDate(d.date))}>
+                    <span className="best-rank">{i + 1}</span>
+                    <span className="best-date">{f.full(d.date)}</span>
+                    <bdi className="best-score-sm" style={{ color: LABEL_COLOR[d.result.label] }}>
+                      {d.result.score}
+                    </bdi>
                   </button>
                 </li>
               ))}
             </ol>
-          </section>
-
-          <section>
-            <div className="list-head">
-              <h3>{t('history.allDays', { n: days.length })}</h3>
-              <button className="link" onClick={() => setSortByScore(!sortByScore)}>
-                {sortByScore ? t('history.sortDate') : t('history.sortScore')}
-              </button>
-            </div>
-            <ul className="day-list">
-              {listed.map((d) => (
-                <li key={isoDate(d.date)}>
-                  <button
-                    className={`day-row score-${d.result.label}`}
-                    aria-pressed={selected !== undefined && sameDay(d.date, parseInputDate(selected))}
-                    onClick={() => showDay(d)}
-                  >
-                    <span className="day-row-date">{fmt.format(d.date)}</span>
-                    <span className="bar" aria-hidden="true">
-                      <span style={{ inlineSize: `${d.result.score}%` }} />
-                    </span>
-                    <bdi className="day-row-score">{d.result.score}</bdi>
-                  </button>
-                </li>
-              ))}
-            </ul>
           </section>
         </>
       )}

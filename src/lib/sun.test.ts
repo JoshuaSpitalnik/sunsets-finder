@@ -21,6 +21,13 @@ describe('getSunsetTimes (Tel Aviv-Jaffa)', () => {
     expect(t.azimuth).toBeLessThan(245)
   })
 
+  it('ends peak colour roughly 15–25 minutes after sunset', () => {
+    const t = getSunsetTimes(new Date('2026-10-09T12:00:00Z'), JAFFA)
+    const minutes = (t.peakColorEnd.getTime() - t.sunset.getTime()) / 60_000
+    expect(minutes).toBeGreaterThan(12)
+    expect(minutes).toBeLessThan(25)
+  })
+
   it('orders golden hour < sunset < peak colour end < dusk', () => {
     const t = getSunsetTimes(new Date('2026-10-09T12:00:00Z'), JAFFA)
     expect(t.goldenHour < t.sunset).toBe(true)

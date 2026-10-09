@@ -6,6 +6,8 @@ export interface Place extends LatLng {
   accuracyM?: number
   /** Human-readable name (from search / reverse geocoding), if known. */
   name?: string
+  /** Town or area under the name. */
+  area?: string
   source: 'gps' | 'map' | 'fallback'
 }
 
@@ -37,6 +39,7 @@ interface NominatimResult {
   lon: string
   display_name: string
   name?: string
+  address?: Record<string, string | undefined>
 }
 
 /** Address / place search, biased to Israel. Called only on submit (Nominatim allows 1 req/s). */
@@ -45,11 +48,18 @@ export async function searchPlaces(query: string, lang: string, signal?: AbortSi
   const res = await fetch(`${NOMINATIM}/search?${params}`, { signal })
   if (!res.ok) throw new Error(`Search failed (${res.status})`)
   const results = (await res.json()) as NominatimResult[]
-  return results.map((r) => ({ lat: +r.lat, lng: +r.lon, name: r.display_name, source: 'map' }))
+  return results.map((r) => {
+    const [name, area] = r.display_name.split(',').map((x) => x.trim())
+    return { lat: +r.lat, lng: +r.lon, name: r.name || name, area, source: 'map' }
+  })
 }
 
-/** Short place name for a tapped point, e.g. "יפו, תל אביב-יפו". */
-export async function reverseGeocode(at: LatLng, lang: string, signal?: AbortSignal): Promise<string | undefined> {
+/** Neighbourhood-level name plus its town for a tapped point, e.g. { name: "יפו", area: "תל אביב-יפו" }. */
+export async function reverseGeocode(
+  at: LatLng,
+  lang: string,
+  signal?: AbortSignal,
+): Promise<{ name: string; area?: string } | undefined> {
   const params = new URLSearchParams({
     lat: at.lat.toFixed(5),
     lon: at.lng.toFixed(5),
@@ -60,8 +70,12 @@ export async function reverseGeocode(at: LatLng, lang: string, signal?: AbortSig
   const res = await fetch(`${NOMINATIM}/reverse?${params}`, { signal })
   if (!res.ok) return undefined
   const r = (await res.json()) as NominatimResult & { error?: string }
-  if (r.error) return undefined
-  return r.display_name.split(',').slice(0, 2).join(',').trim()
+  if (r.error || !r.address) return undefined
+  const a = r.address
+  const name = a.suburb || a.neighbourhood || a.village || a.town || a.city || a.county
+  if (!name) return undefined
+  const area = a.city || a.town || a.state
+  return { name, area: area && area !== name ? area : undefined }
 }
 
 /** Turn-by-turn navigation links; on phones these open the installed app. */

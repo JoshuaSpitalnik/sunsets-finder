@@ -163,3 +163,35 @@ export function confidenceFor(daysAhead: number): Confidence {
   if (daysAhead <= 3) return 'medium'
   return 'low'
 }
+
+export type SummaryDetail =
+  | 'rain'
+  | 'clearSky'
+  | 'canvasClearPath'
+  | 'canvasBlockedPath'
+  | 'tooMuchCloud'
+  | 'postStorm'
+  | 'heavyDust'
+  | 'canvas'
+  | 'mixed'
+
+/**
+ * Plain-language summary for a score: a headline per label plus the single most telling detail.
+ * Returns i18n keys (`summary.head.<label>`, `summary.detail.<detail>`).
+ */
+export function summaryKeys(result: Pick<SunsetScore, 'label' | 'reasons'>): { head: string; detail: string } {
+  const k = new Set(result.reasons.map((r) => r.key))
+  let detail: SummaryDetail = 'mixed'
+  if (k.has('rain')) detail = 'rain'
+  else if (k.has('clearSky')) detail = 'clearSky'
+  else if (k.has('canvas') && k.has('clearPath')) detail = 'canvasClearPath'
+  else if (k.has('canvas') && k.has('blockedPath')) detail = 'canvasBlockedPath'
+  else if (k.has('tooMuchCloud')) detail = 'tooMuchCloud'
+  else if (k.has('postStorm')) detail = 'postStorm'
+  else if (k.has('heavyDust')) detail = 'heavyDust'
+  else if (k.has('canvas')) detail = 'canvas'
+  return { head: `summary.head.${result.label}`, detail: `summary.detail.${detail}` }
+}
+
+/** Index 0–15 into the 16-point compass (0 = N, 4 = E, 8 = S, 12 = W). */
+export const compassIndex = (azimuth: number) => Math.round((((azimuth % 360) + 360) % 360) / 22.5) % 16

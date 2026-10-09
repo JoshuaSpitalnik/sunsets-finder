@@ -32,10 +32,9 @@ export function PhotoGallery({ at, onCheckDate }: Props) {
 
   return (
     <section className="photos">
-      <h3>{t('photos.title')}</h3>
-      {state.status === 'loading' && <p className="muted">{t('photos.loading')}</p>}
-      {state.status === 'error' && <p className="muted">{t('photos.error')}</p>}
-      {state.status === 'ready' && state.photos.length === 0 && <p className="muted">{t('photos.none')}</p>}
+      {state.status === 'loading' && <p className="muted-sm">{t('photos.loading')}</p>}
+      {state.status === 'error' && <p className="muted-sm">{t('photos.error')}</p>}
+      {state.status === 'ready' && state.photos.length === 0 && <p className="muted-sm">{t('photos.none')}</p>}
       {state.status === 'ready' && state.photos.length > 0 && (
         <ul className="photo-strip">
           {state.photos.map((p) => (
@@ -45,11 +44,11 @@ export function PhotoGallery({ at, onCheckDate }: Props) {
               </a>
               <div className="photo-meta">
                 {p.takenAt && <span>{dateFmt.format(p.takenAt)}</span>}
-                <span className="muted photo-credit">
+                <span className="photo-credit">
                   {[p.artist, p.license].filter(Boolean).join(' · ')}
                 </span>
                 {p.takenAt && p.takenAt >= HISTORY_START && onCheckDate && (
-                  <button className="link" onClick={() => onCheckDate(p.takenAt!)}>
+                  <button className="text-link" onClick={() => onCheckDate(p.takenAt!)}>
                     {t('photos.checkDay')}
                   </button>
                 )}
@@ -58,7 +57,7 @@ export function PhotoGallery({ at, onCheckDate }: Props) {
           ))}
         </ul>
       )}
-      <p className="muted small">{t('photos.source')}</p>
+      <p className="fine-print">{t('photos.source')}</p>
     </section>
   )
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canvasQuality, scoreSunset, type SunsetConditions } from './score'
+import { canvasQuality, compassIndex, scoreSunset, summaryKeys, type SunsetConditions } from './score'
 
 const base: SunsetConditions = {
   highCloud: 0,
@@ -66,5 +66,25 @@ describe('canvasQuality', () => {
     expect(canvasQuality(45)).toBe(1)
     expect(canvasQuality(5)).toBeLessThan(0.5)
     expect(canvasQuality(100)).toBeLessThan(0.5)
+  })
+})
+
+describe('summaryKeys', () => {
+  it('prefers rain, then the canvas/light-path combination', () => {
+    expect(summaryKeys({ label: 'meh', reasons: [{ key: 'rain', positive: false }, { key: 'canvas', positive: true }] }).detail).toBe('summary.detail.rain')
+    expect(
+      summaryKeys({ label: 'epic', reasons: [{ key: 'canvas', positive: true }, { key: 'clearPath', positive: true }] }),
+    ).toEqual({ head: 'summary.head.epic', detail: 'summary.detail.canvasClearPath' })
+    expect(summaryKeys({ label: 'nice', reasons: [] }).detail).toBe('summary.detail.mixed')
+  })
+})
+
+describe('compassIndex', () => {
+  it('maps bearings to 16 points', () => {
+    expect(compassIndex(0)).toBe(0)
+    expect(compassIndex(262)).toBe(12) // W
+    expect(compassIndex(298)).toBe(13) // WNW
+    expect(compassIndex(359)).toBe(0)
+    expect(compassIndex(-90)).toBe(12)
   })
 })

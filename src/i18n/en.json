@@ -1,17 +1,17 @@
 {
   "appName": "Sunset Finder",
-  "tonight": "Tonight",
   "today": "Today",
+  "tonight": "Tonight",
   "locating": "Finding your location…",
-  "loadingForecast": "Loading forecast…",
-  "accuracy": "±{{m}} m accuracy",
-  "defaultLocation": "Jaffa (default — no location permission)",
-  "refreshLocation": "Refresh location",
-  "copyCoords": "Copy coordinates",
-  "copied": "Copied",
-  "error": "Couldn't load the forecast. Please try again later.",
+  "loading": "Loading forecast…",
+  "error": "Couldn't load the forecast. Please try again.",
   "retry": "Try again",
   "language": "עברית",
+  "footer": "Weather data: Open-Meteo",
+  "duration": {
+    "hm": "{{h}}h {{m}}m",
+    "m": "{{m}} min"
+  },
   "labels": {
     "meh": "Meh",
     "nice": "Nice",
@@ -22,14 +22,6 @@
     "high": "High confidence",
     "medium": "Medium confidence",
     "low": "Low confidence"
-  },
-  "times": {
-    "goldenHour": "Golden hour",
-    "arriveBy": "Arrive by",
-    "sunset": "Sunset",
-    "peakColor": "Peak colour",
-    "dusk": "Blue hour ends",
-    "direction": "Sunset direction"
   },
   "reasons": {
     "canvas": "High clouds — a canvas for colour",
@@ -45,52 +37,147 @@
     "aerosolGlow": "Light dust — deeper reds",
     "heavyDust": "Sharav / heavy dust"
   },
-  "week": "This week",
-  "footer": "Weather data: Open-Meteo",
-  "myLocation": "My location",
-  "pickedOnMap": "Point picked on the map",
-  "changeOnMap": "Change on map",
-  "useGps": "Back to GPS",
+  "summary": {
+    "head": {
+      "meh": "A quiet one tonight.",
+      "nice": "Soft colour is likely.",
+      "great": "A good evening to be outside.",
+      "epic": "Worth planning your evening around."
+    },
+    "detail": {
+      "rain": "Rain is expected around sunset.",
+      "clearSky": "Clear skies: a clean sunset, but little colour.",
+      "canvasClearPath": "High clouds should catch the light over an open western horizon.",
+      "canvasBlockedPath": "There’s a good canvas overhead, but low cloud to the west may block the light.",
+      "tooMuchCloud": "A heavy cloud lid will probably mute the colour.",
+      "postStorm": "The air is washed clean after rain, which often brings colour.",
+      "heavyDust": "Heavy dust will flatten the colour into a pale haze.",
+      "canvas": "Some clouds are up there to catch the light.",
+      "mixed": "Mixed conditions, so colour is possible but not certain."
+    }
+  },
+  "compass": {
+    "long": ["north", "north-northeast", "northeast", "east-northeast", "east", "east-southeast", "southeast", "south-southeast", "south", "south-southwest", "southwest", "west-southwest", "west", "west-northwest", "northwest", "north-northwest"],
+    "short": ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+  },
   "tabs": {
     "tonight": "Tonight",
     "map": "Map",
+    "spots": "Spots",
     "history": "History"
   },
-  "sky": {
-    "alt": "Simulated sunset based on the weather",
-    "caption": "Simulated from cloud, dust and rain data at sunset"
+  "place": {
+    "current": "Current location",
+    "fallback": "Jaffa",
+    "fallbackNote": "No location permission, showing Jaffa",
+    "dropped": "Dropped pin",
+    "accuracy": "±{{m}} m",
+    "copy": "Copy",
+    "copied": "Copied",
+    "backToGps": "Back to GPS",
+    "openMap": "Change place on the map"
+  },
+  "tonightScreen": {
+    "beThereBy": "Be there by {{time}}",
+    "goldenIn": "Golden hour in {{d}}",
+    "sunsetIn": "Sunset in {{d}}",
+    "peakNow": "Colour peaking now",
+    "over": "The sun has set",
+    "otherDay": "{{day}} · sunset {{time}}",
+    "backToTonight": "Back to tonight",
+    "theLight": "The light",
+    "golden": "Golden hour",
+    "sunset": "Sunset",
+    "peakEnds": "Peak colour ends",
+    "blueEnds": "Blue hour ends",
+    "face": "Face {{dir}} · {{az}}°",
+    "faceSub": "Where the sun meets the horizon",
+    "map": "Map",
+    "why": "Why",
+    "remindersLabel": "Reminders",
+    "lessCertain": "Forecasts get less certain after day 3."
+  },
+  "reminders": {
+    "golden": "Remind me before golden hour",
+    "goldenAt": "At {{time}}, 30 min before",
+    "off": "Off",
+    "great": "Tell me about great evenings",
+    "greatSub": "When a saved spot scores 55+",
+    "blocked": "Notifications are blocked. Allow them in your phone's settings.",
+    "webNote": "In the web app, alerts only arrive while it's open."
+  },
+  "evening": {
+    "live": "Live · {{phase}}",
+    "phase": {
+      "golden": "golden hour",
+      "peak": "peak colour",
+      "blue": "blue hour"
+    },
+    "lookWest": "Look west now",
+    "left": "of colour left",
+    "sentence": {
+      "golden": "The light is warming. Colour should build as the sun drops toward the horizon.",
+      "peak": "The high clouds are lit from below. It should deepen to red for the next few minutes.",
+      "blue": "The colour is fading into blue hour. Watch for the afterglow on the clouds."
+    },
+    "sunset": "Sunset",
+    "peakEnds": "Peak ends",
+    "blue": "Blue hour",
+    "full": "Full forecast"
+  },
+  "map": {
+    "searchPlaceholder": "Search a place or address",
+    "searching": "Searching…",
+    "noResults": "No results",
+    "searchError": "Search failed",
+    "hint": "Drag the pin, or tap anywhere",
+    "locate": "Back to my location",
+    "useSpot": "Use this spot",
+    "save": "Save",
+    "saved": "Saved",
+    "directions": "Directions in Google Maps",
+    "waze": "Navigate with Waze",
+    "golden": "Golden hour",
+    "sunset": "Sunset",
+    "face": "Face",
+    "photos": "Sunset photos nearby",
+    "loading": "Loading map…"
+  },
+  "spots": {
+    "title": "Spots",
+    "sub": "Ranked by tonight's forecast",
+    "best": "Best tonight",
+    "sunsetAt": "sunset {{time}}",
+    "savedPin": "Saved pin",
+    "addHint": "Drop a pin on the map and tap Save to add a spot.",
+    "empty": "No saved spots yet."
+  },
+  "history": {
+    "title": "History",
+    "sub": "Past sunsets at {{place}}, scored from recorded weather",
+    "days": "{{n}} days",
+    "custom": "Custom range",
+    "from": "From",
+    "to": "To",
+    "search": "Show",
+    "limits": "Up to {{days}} days at a time, from January 2022.",
+    "bestInRange": "Best in this range",
+    "selected": "Selected day",
+    "sunset": "Sunset {{time}}",
+    "tapDay": "Tap a day"
   },
   "photos": {
-    "title": "Real sunset photos from this area",
+    "title": "Sunset photos nearby",
     "loading": "Looking for photos…",
     "error": "Couldn't load photos right now.",
     "none": "No sunset photos found within 10 km.",
     "checkDay": "How did that day score?",
     "source": "Photos: Wikimedia Commons, freely licensed"
   },
-  "history": {
-    "title": "Search past sunsets",
-    "lastDays": "Last {{n}} days",
-    "from": "From",
-    "to": "To",
-    "search": "Search",
-    "limits": "Up to {{days}} days per search, from January 2022 on. Scores use the actual recorded weather.",
-    "best": "Best sunsets in this range",
-    "allDays": "All days ({{n}})",
-    "sortScore": "Sort by score",
-    "sortDate": "Sort by date"
-  },
-  "map": {
-    "loading": "Loading map…",
-    "searchPlaceholder": "Search a place or address",
-    "search": "Search",
-    "searchError": "Search failed, please try again.",
-    "noResults": "No results",
-    "recenter": "Back to my location",
-    "tapHint": "Tap anywhere on the map to see the sunset there and photos from the area",
-    "setLocation": "Set as my location",
-    "legendMe": "My location",
-    "legendPicked": "Picked point",
-    "legendLine": "Sunset direction"
+  "notify": {
+    "remindTitle": "Golden hour soon at {{place}}",
+    "remindBody": "Golden hour starts {{golden}}, sunset at {{sunset}}.",
+    "greatTitle": "{{label}} sunset at {{spot}}",
+    "greatBody": "Scores {{score}} tonight. Golden hour starts {{golden}}, so leave in about {{min}} minutes."
   }
 }
