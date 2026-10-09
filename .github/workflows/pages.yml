@@ -3,6 +3,9 @@ name: Deploy PWA to GitHub Pages
 on:
   push:
     branches: [main, master]
+  # Refresh forecasters' posts (osint.json) every 30 minutes.
+  schedule:
+    - cron: '7,37 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -29,6 +32,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Collect forecasters' posts
+        run: node scripts/fetch-osint.mjs dist/osint.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -1,6 +1,7 @@
 import { destination, type LatLng } from './geo'
 import { getSunsetTimes, type SunsetTimes } from './sun'
 import { confidenceFor, scoreSunset, type Confidence, type SunsetConditions, type SunsetScore } from './score'
+import type { DayOsint } from './osint/types'
 
 /** Distances (km) toward the sunset at which we check for low cloud blocking the light. */
 export const LIGHT_PATH_KM = [25, 50, 100, 200]
@@ -35,6 +36,10 @@ export interface DayForecast {
   result: SunsetScore
   /** Only for forecasts — past days are scored from what actually happened. */
   confidence?: Confidence
+  /** Weather-only score, when forecasters' posts moved `result.score`. */
+  modelScore?: number
+  /** Forecasters' leads behind that move. */
+  osint?: DayOsint
 }
 
 function nearestIndex(times: number[], unixSeconds: number): number {

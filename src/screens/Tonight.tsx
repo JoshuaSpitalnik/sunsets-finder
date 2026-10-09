@@ -32,6 +32,7 @@ interface Props {
   evening: boolean
   onDismissEvening: () => void
   onLanguage: () => void
+  onOpenUpdates: () => void
 }
 
 export function Tonight(props: Props) {
@@ -70,6 +71,7 @@ function TonightForecast({
   onOpenMap,
   onUseGps,
   onLanguage,
+  onOpenUpdates,
 }: Props & { days: DayForecast[]; selected: number; onSelect: (i: number) => void }) {
   const { t } = useTranslation()
   const f = useFormat()
@@ -161,7 +163,13 @@ function TonightForecast({
           </button>
         )}
         <LightCard times={tm} now={now} isToday={selected === 0} onMap={onOpenMap} />
-        <WhyList reasons={day.result.reasons} />
+        <WhyList
+          reasons={day.result.reasons}
+          osint={day.osint}
+          modelScore={day.modelScore}
+          now={now}
+          onOpenUpdates={onOpenUpdates}
+        />
         <RemindersCard
           ref={remindersRef}
           settings={settings}

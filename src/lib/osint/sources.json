@@ -1,0 +1,70 @@
+[
+  {
+    "id": "ims",
+    "kind": "official",
+    "name": { "he": "השירות המטאורולוגי", "en": "Israel Meteorological Service" },
+    "fetch": { "type": "ims-forecast", "url": "https://ims.gov.il/sites/default/files/ims_data/xml_files/isr_country.xml" },
+    "link": "https://ims.gov.il/he/Forecasts",
+    "reliability": "high"
+  },
+  {
+    "id": "ims-warnings",
+    "kind": "official",
+    "name": { "he": "השירות המטאורולוגי · אזהרות", "en": "IMS warnings" },
+    "fetch": { "type": "rss", "url": "https://ims.gov.il/sites/default/files/ims_data/rss/alert/rssAlert_general_country_he.xml" },
+    "link": "https://www.ims.gov.il/he/IMSWarnings",
+    "reliability": "high"
+  },
+  {
+    "id": "tal-shamai",
+    "kind": "forecaster",
+    "name": { "he": "טל שמאי", "en": "Tal Shamai" },
+    "fetch": { "type": "share" },
+    "link": "https://whatsapp.com/channel/0029VaLasHvDuMRbVx6pmC2p",
+    "match": ["whatsapp.com/channel/0029VaLasHvDuMRbVx6pmC2p", "טל שמאי"],
+    "reliability": "medium"
+  },
+  {
+    "id": "israel-weather",
+    "kind": "forecaster",
+    "name": { "he": "התחזית ישראל", "en": "HaTachazit Israel" },
+    "fetch": { "type": "telegram", "handle": "Israel_weather_channel" },
+    "link": "https://t.me/Israel_weather_channel",
+    "match": ["t.me/Israel_weather_channel"],
+    "reliability": "medium"
+  },
+  {
+    "id": "weather2day",
+    "kind": "forecaster",
+    "name": { "he": "מחתרת מזג אוויר", "en": "Weather2day" },
+    "fetch": { "type": "telegram", "handle": "weather2day" },
+    "link": "https://t.me/weather2day",
+    "match": ["t.me/weather2day", "weather2day"],
+    "reliability": "medium"
+  },
+  {
+    "id": "weather-news-il",
+    "kind": "community",
+    "name": { "he": "חדשות מזג אוויר בטלגרם", "en": "Weather news (Telegram)" },
+    "fetch": { "type": "telegram", "handle": "Weather_newsil", "weatherOnly": true },
+    "link": "https://t.me/Weather_newsil",
+    "match": ["t.me/Weather_newsil"],
+    "reliability": "low"
+  },
+  {
+    "id": "ynet",
+    "kind": "news",
+    "name": { "he": "ynet", "en": "ynet" },
+    "fetch": { "type": "rss", "url": "https://www.ynet.co.il/Integration/StoryRss2.xml", "weatherOnly": true },
+    "link": "https://www.ynet.co.il",
+    "reliability": "low"
+  },
+  {
+    "id": "walla",
+    "kind": "news",
+    "name": { "he": "וואלה", "en": "Walla" },
+    "fetch": { "type": "rss", "url": "https://rss.walla.co.il/feed/1", "weatherOnly": true },
+    "link": "https://news.walla.co.il",
+    "reliability": "low"
+  }
+]

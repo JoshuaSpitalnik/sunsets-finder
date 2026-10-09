@@ -83,3 +83,11 @@ export const IconPhoto = ({ size = 18 }: P) => (
     <circle cx="16" cy="9" r="1.5" />
   </svg>
 )
+
+/** Megaphone: forecasters' updates. */
+export const IconUpdates = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 10v4h3l7 4V6L7 10H4z" />
+    <path d="M17.5 9.5a3.5 3.5 0 0 1 0 5M7 14l1.5 5h2.5l-1-4.5" />
+  </svg>
+)

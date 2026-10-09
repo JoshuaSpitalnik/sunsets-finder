@@ -19,6 +19,7 @@ export function useFormat() {
       // 2026-10-04 is a Sunday: Sunday-first like the Israeli week.
       new Intl.DateTimeFormat(locale, { weekday: 'narrow' }).format(new Date(2026, 9, 4 + i)),
     )
+    const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
     const long = t('compass.long', { returnObjects: true }) as string[]
     const short = t('compass.short', { returnObjects: true }) as string[]
     return {
@@ -34,6 +35,14 @@ export function useFormat() {
       duration: (minutes: number) => {
         const m = Math.max(0, Math.round(minutes))
         return m >= 60 ? t('duration.hm', { h: Math.floor(m / 60), m: m % 60 }) : t('duration.m', { m })
+      },
+      /** "3 hours ago", "yesterday" */
+      ago: (iso: string, now: number) => {
+        const minutes = Math.round((Date.parse(iso) - now) / 60_000)
+        if (Math.abs(minutes) < 60) return relative.format(minutes, 'minute')
+        const hours = Math.round(minutes / 60)
+        if (Math.abs(hours) < 24) return relative.format(hours, 'hour')
+        return relative.format(Math.round(hours / 24), 'day')
       },
       compassLong: (az: number) => long[compassIndex(az)],
       compassShort: (az: number) => short[compassIndex(az)],

@@ -11,7 +11,8 @@ import { destination, type LatLng } from '../lib/geo'
 import { reverseGeocode, searchPlaces, type Place } from '../lib/location'
 import { getSunsetTimes } from '../lib/sun'
 import { LABEL_COLOR } from '../lib/theme'
-import { useForecast } from '../lib/useForecasts'
+import { useForecast, type ForecastState } from '../lib/useForecasts'
+import type { DayForecast } from '../lib/weather'
 
 // MapLibre looks for its worker next to its own file, which bundling moves — point it at the emitted asset.
 setWorkerUrl(workerUrl)
@@ -29,6 +30,8 @@ interface Props {
   onToggleSave: (p: Place) => void
   onUse: (p: Place) => void
   onOpenHistory: (p: Place, date: Date) => void
+  /** Apply forecasters' updates to the pin's forecast. */
+  adjust: (days: DayForecast[], at: LatLng) => DayForecast[]
 }
 
 function sunGeo(p: LatLng): FeatureCollection {
@@ -52,7 +55,7 @@ function localizeLabels(map: MapLibre, lang: string) {
   }
 }
 
-export default function MapScreen({ place, initialPin, isSaved, onToggleSave, onUse, onOpenHistory }: Props) {
+export default function MapScreen({ place, initialPin, isSaved, onToggleSave, onUse, onOpenHistory, adjust }: Props) {
   const { t, i18n } = useTranslation()
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibre | null>(null)
@@ -69,7 +72,8 @@ export default function MapScreen({ place, initialPin, isSaved, onToggleSave, on
   const [hint, setHint] = useState(true)
   const [query, setQuery] = useState('')
   const [searchState, setSearchState] = useState<'idle' | 'searching' | 'none' | 'error'>('idle')
-  const forecast = useForecast(pin)
+  const raw = useForecast(pin)
+  const forecast: ForecastState = raw.status === 'ready' ? { status: 'ready', days: adjust(raw.days, pin) } : raw
   const day = forecast.status === 'ready' ? forecast.days[0] : undefined
   const lang = i18n.language
   const revId = useRef(0)

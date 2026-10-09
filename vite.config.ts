@@ -23,6 +23,12 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         start_url: '.',
+        // Android: Share → Sunset Finder files a WhatsApp/Telegram post into Updates.
+        share_target: {
+          action: './',
+          method: 'GET',
+          params: { title: 'share_title', text: 'share_text', url: 'share_url' },
+        },
         icons: [
           { src: 'pwa-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },
@@ -32,6 +38,12 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2}'],
         runtimeCaching: [
+          {
+            // Forecasters' feed: fresh when online, last copy offline.
+            urlPattern: /\/osint\.json$/,
+            handler: 'NetworkFirst',
+            options: { cacheName: 'osint', networkTimeoutSeconds: 8, expiration: { maxEntries: 2 } },
+          },
           {
             // Last forecast stays available offline; fresh data wins when online.
             urlPattern: /^https:\/\/(api|air-quality-api|historical-forecast-api)\.open-meteo\.com\//,

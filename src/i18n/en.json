@@ -57,14 +57,49 @@
     }
   },
   "compass": {
-    "long": ["north", "north-northeast", "northeast", "east-northeast", "east", "east-southeast", "southeast", "south-southeast", "south", "south-southwest", "southwest", "west-southwest", "west", "west-northwest", "northwest", "north-northwest"],
-    "short": ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+    "long": [
+      "north",
+      "north-northeast",
+      "northeast",
+      "east-northeast",
+      "east",
+      "east-southeast",
+      "southeast",
+      "south-southeast",
+      "south",
+      "south-southwest",
+      "southwest",
+      "west-southwest",
+      "west",
+      "west-northwest",
+      "northwest",
+      "north-northwest"
+    ],
+    "short": [
+      "N",
+      "NNE",
+      "NE",
+      "ENE",
+      "E",
+      "ESE",
+      "SE",
+      "SSE",
+      "S",
+      "SSW",
+      "SW",
+      "WSW",
+      "W",
+      "WNW",
+      "NW",
+      "NNW"
+    ]
   },
   "tabs": {
     "tonight": "Tonight",
     "map": "Map",
     "spots": "Spots",
-    "history": "History"
+    "history": "History",
+    "updates": "Updates"
   },
   "place": {
     "current": "Current location",
@@ -179,5 +214,66 @@
     "remindBody": "Golden hour starts {{golden}}, sunset at {{sunset}}.",
     "greatTitle": "{{label}} sunset at {{spot}}",
     "greatBody": "Scores {{score}} tonight. Golden hour starts {{golden}}, so leave in about {{min}} minutes."
+  },
+  "osint": {
+    "title": "Updates",
+    "sub": "What weather sources in Israel are saying about the sky",
+    "tonightAt": "Tonight at {{place}}",
+    "nudge": "{{delta}} from forecasters",
+    "modelOnly": "Weather alone: {{score}}",
+    "noLeads": "No sunset clues for tonight yet.",
+    "filterLeads": "Sunset clues",
+    "filterAll": "All posts",
+    "add": "Add a post",
+    "addHint": "Paste a post from WhatsApp or anywhere. On Android you can also use Share → Sunset Finder.",
+    "text": "Post text",
+    "source": "Source",
+    "postedAt": "Posted",
+    "other": "Other source",
+    "save": "Add",
+    "cancel": "Cancel",
+    "remove": "Remove",
+    "open": "Original",
+    "shared": "Added by you",
+    "sources": "Sources",
+    "sourcesHint": "How much each source can move the score. WhatsApp channels can’t be read automatically: share their posts here.",
+    "reliability": {
+      "off": "Off",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "kind": {
+      "official": "Official",
+      "forecaster": "Forecaster",
+      "community": "Community",
+      "news": "News"
+    },
+    "updated": "Feed updated {{time}}",
+    "feedError": "Couldn't load the feed. Showing posts you added.",
+    "empty": "No posts here yet.",
+    "more": "More",
+    "less": "Less",
+    "seeAll": "All updates",
+    "why": "Forecasters",
+    "hedged": "maybe",
+    "otherRegion": "other area",
+    "aboutDay": "about {{day}}",
+    "leadsCount": "{{n}} clues"
+  },
+  "cues": {
+    "sunset": "Nice sunset mentioned",
+    "cirrus": "Cirrus clouds",
+    "highCloud": "High clouds",
+    "clearing": "Clearing",
+    "partlyCloudy": "Partly cloudy",
+    "rain": "Rain",
+    "storm": "Storm",
+    "lowCloud": "Low cloud",
+    "haze": "Haze",
+    "dust": "Dust / sharav",
+    "fog": "Fog",
+    "overcast": "Overcast",
+    "clear": "Clear sky"
   }
 }

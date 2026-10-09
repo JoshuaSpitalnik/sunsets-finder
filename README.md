@@ -29,8 +29,27 @@ Design: Claude Design handoff "Sunset Finder" (warm light theme, Newsreader + Ge
 - **מקומות / Spots**: saved spots ranked by tonight's forecast, starting with five west-facing classics.
 - **היסטוריה / History**: a calendar heatmap of past sunsets (7/30/90 days or a custom range since
   2022), scored from recorded weather, with the best days of the range.
+- **עדכונים / Updates**: a scrollable feed of what Israeli weather sources are posting, with sunset
+  clues highlighted (see below), a summary of what they say about tonight, and per-source reliability.
 - **Notifications**: a reminder 30 minutes before golden hour, plus an alert when a saved spot scores 55+.
   Both are reliable in the Android/iOS apps; the PWA delivers them only while it's open.
+
+## Forecasters' updates (OSINT)
+Forecasters often spot what models miss: "ענני נוצה שעשויים לגרום לשקיעה יפה" is a strong hint.
+- **Sources** (`src/lib/osint/sources.json`):
+  - **Fetched automatically:** the IMS daily forecast and warnings, and the public Telegram channels
+    התחזית ישראל, מחתרת מזג אוויר and חדשות מזג אוויר. ynet and Walla are included, filtered to weather stories.
+  - **Shared by you:** WhatsApp channels (e.g. Tal Shamai) can't be read automatically. Share a post to
+    the app (Android PWA share target) or paste it in Updates.
+- **Collection:** the Pages workflow runs every 30 minutes, and `scripts/fetch-osint.mjs` writes
+  `osint.json` next to the app.
+- **Analysis** (`src/lib/osint/`) runs in the app, so shared posts go through the same logic:
+  - it finds Hebrew/English clue words (ענני נוצה, עננות גבוהה, שקיעה יפה, התבהרות, גשם, אובך, שרב, ערפל…);
+  - it ties each clue to a day (היום, מחר, בשלישי, (שני), 10/10, בעוד שבוע…);
+  - it ignores negations ("ללא גשם"), softens hedges ("עשויים") and past reports ("ירדו גשמים"),
+    and damps clues about other regions.
+- **Scoring:** each day's score moves by up to ±12 points, weighted by source reliability
+  (off/low/medium/high, adjustable) and post age (gone after 3 days). The weather-only score is always shown too.
 
 ## Development
 ```bash
@@ -53,5 +72,6 @@ npm run build      # PWA build in dist/
 1. ✅ PWA + Capacitor scaffold, Hebrew/RTL, GPS, sunset times, weather scoring, 7-day strip
 2. ✅ Map with tap-to-explore, address search, sunset line, nearby photos; history search
 3. ✅ Redesign: Spots, evening mode, calendar history, local notifications
-4. OSM viewpoints, terrain horizon check, exact standing points
-5. "Rate this sunset" and tuning the model to your ratings
+4. ✅ Forecasters' updates feed (OSINT) nudging the score
+5. OSM viewpoints, terrain horizon check, exact standing points
+6. "Rate this sunset" and tuning the model to your ratings

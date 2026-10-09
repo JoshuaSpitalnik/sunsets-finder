@@ -58,6 +58,12 @@ export function SkyHero({ day, heading, header }: Props) {
           <span className="sky-label">
             {t(`labels.${day.result.label}`)}
             {day.confidence && <span className="glass-pill">{t(`confidence.${day.confidence}`)}</span>}
+            {day.osint && day.osint.adjustment !== 0 && (
+              <span className="glass-pill">
+                {/* LRI…PDI keeps "+6" from flipping to "6+" inside Hebrew text. */}
+                {t('osint.nudge', { delta: `\u2066${day.osint.adjustment > 0 ? '+' : ''}${day.osint.adjustment}\u2069` })}
+              </span>
+            )}
           </span>
           <p className="sky-summary">
             {t(head)} {t(detail)}
