@@ -5,7 +5,7 @@
   "locating": "Finding your location…",
   "loadingForecast": "Loading forecast…",
   "accuracy": "±{{m}} m accuracy",
-  "defaultLocation": "Default location: Jaffa (location permission denied)",
+  "defaultLocation": "Jaffa (default — no location permission)",
   "refreshLocation": "Refresh location",
   "copyCoords": "Copy coordinates",
   "copied": "Copied",
@@ -46,5 +46,51 @@
     "heavyDust": "Sharav / heavy dust"
   },
   "week": "This week",
-  "footer": "Weather data: Open-Meteo"
+  "footer": "Weather data: Open-Meteo",
+  "myLocation": "My location",
+  "pickedOnMap": "Point picked on the map",
+  "changeOnMap": "Change on map",
+  "useGps": "Back to GPS",
+  "tabs": {
+    "tonight": "Tonight",
+    "map": "Map",
+    "history": "History"
+  },
+  "sky": {
+    "alt": "Simulated sunset based on the weather",
+    "caption": "Simulated from cloud, dust and rain data at sunset"
+  },
+  "photos": {
+    "title": "Real sunset photos from this area",
+    "loading": "Looking for photos…",
+    "error": "Couldn't load photos right now.",
+    "none": "No sunset photos found within 10 km.",
+    "checkDay": "How did that day score?",
+    "source": "Photos: Wikimedia Commons, freely licensed"
+  },
+  "history": {
+    "title": "Search past sunsets",
+    "lastDays": "Last {{n}} days",
+    "from": "From",
+    "to": "To",
+    "search": "Search",
+    "limits": "Up to {{days}} days per search, from January 2022 on. Scores use the actual recorded weather.",
+    "best": "Best sunsets in this range",
+    "allDays": "All days ({{n}})",
+    "sortScore": "Sort by score",
+    "sortDate": "Sort by date"
+  },
+  "map": {
+    "loading": "Loading map…",
+    "searchPlaceholder": "Search a place or address",
+    "search": "Search",
+    "searchError": "Search failed, please try again.",
+    "noResults": "No results",
+    "recenter": "Back to my location",
+    "tapHint": "Tap anywhere on the map to see the sunset there and photos from the area",
+    "setLocation": "Set as my location",
+    "legendMe": "My location",
+    "legendPicked": "Picked point",
+    "legendLine": "Sunset direction"
+  }
 }

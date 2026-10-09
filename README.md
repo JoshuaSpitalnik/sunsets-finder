@@ -17,6 +17,14 @@ API key) for your location **and** for four points 25/50/100/200 km along the su
 Each day gets a 0–100 score, a label (סתמית / נחמדה / מעולה / אפית), the reasons behind it, and a
 confidence level that drops with lead time. All weights live in `src/lib/score.ts`.
 
+## Screens
+- **הערב / Tonight**: score, reasons, simulated sky, timings and a 7-day strip for your location.
+- **מפה / Map**: tap anywhere to see the sunset score there and the sunset direction line. You also get
+  Waze/Google Maps links and **real sunset photos taken nearby** (Wikimedia Commons). Search an address,
+  or set any point as your location.
+- **היסטוריה / History**: search past sunsets (last 7/30/90 days or any range since 2022, up to 92 days),
+  ranked from the actual recorded weather. Every photo's "how did that day score?" link jumps here.
+
 ## Development
 ```bash
 npm install
@@ -36,6 +44,7 @@ npm run build      # PWA build in dist/
 
 ## Roadmap
 1. ✅ PWA + Capacitor scaffold, Hebrew/RTL, GPS, sunset times, weather scoring, 7-day strip
-2. Map (MapLibre) with OSM viewpoints, terrain horizon check, exact standing points, Waze links
-3. Saved spots, offline history, "rate this sunset"
-4. Native local notifications for "Epic sunset tonight"
+2. ✅ Map with tap-to-explore, address search, sunset line, nearby photos; history search
+3. OSM viewpoints, terrain horizon check, exact standing points
+4. Saved spots, offline history, "rate this sunset"
+5. Native local notifications for "Epic sunset tonight"

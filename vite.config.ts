@@ -30,11 +30,11 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2}'],
         runtimeCaching: [
           {
             // Last forecast stays available offline; fresh data wins when online.
-            urlPattern: /^https:\/\/(api|air-quality-api)\.open-meteo\.com\//,
+            urlPattern: /^https:\/\/(api|air-quality-api|historical-forecast-api)\.open-meteo\.com\//,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'weather',

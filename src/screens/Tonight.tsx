@@ -1,95 +1,55 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ReasonChips } from '../components/ReasonChips'
-import { ScoreRing } from '../components/ScoreRing'
-import { TimeBand } from '../components/TimeBand'
+import { DayDetail } from '../components/DayDetail'
+import { PlaceHeader } from '../components/PlaceHeader'
 import { WeekStrip } from '../components/WeekStrip'
-import { getUserLocation, type UserLocation } from '../lib/location'
+import type { Place } from '../lib/location'
 import { fetchSunsetForecast, type DayForecast } from '../lib/weather'
 
-type State =
-  | { status: 'locating' }
-  | { status: 'loading'; location: UserLocation }
-  | { status: 'ready'; location: UserLocation; days: DayForecast[] }
-  | { status: 'error'; location: UserLocation }
+type State = { status: 'loading' } | { status: 'ready'; days: DayForecast[] } | { status: 'error' }
 
-export function Tonight() {
+interface Props {
+  place: Place
+  onUseGps: () => void
+  onOpenMap: () => void
+}
+
+/** Remount (key) when the place changes so the previous forecast never shows for a new spot. */
+export function Tonight({ place, onUseGps, onOpenMap }: Props) {
   const { t } = useTranslation()
-  const [state, setState] = useState<State>({ status: 'locating' })
+  const [state, setState] = useState<State>({ status: 'loading' })
   const [selected, setSelected] = useState(0)
-  const [copied, setCopied] = useState(false)
-
-  const load = useCallback(async (signal?: AbortSignal) => {
-    const location = await getUserLocation()
-    if (signal?.aborted) return
-    setState({ status: 'loading', location })
-    try {
-      const days = await fetchSunsetForecast(location, signal)
-      if (!signal?.aborted) setState({ status: 'ready', location, days })
-    } catch {
-      if (!signal?.aborted) setState({ status: 'error', location })
-    }
-  }, [])
+  const [attempt, setAttempt] = useState(0)
+  const { lat, lng } = place
 
   useEffect(() => {
     const controller = new AbortController()
-    void load(controller.signal)
+    fetchSunsetForecast({ lat, lng }, controller.signal)
+      .then((days) => setState({ status: 'ready', days }))
+      .catch(() => {
+        if (!controller.signal.aborted) setState({ status: 'error' })
+      })
     return () => controller.abort()
-  }, [load])
+  }, [lat, lng, attempt])
 
-  const reload = () => {
-    setState({ status: 'locating' })
-    void load()
-  }
-
-  if (state.status === 'locating') return <p className="status">{t('locating')}</p>
-
-  const { location } = state
-  const coords = `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}`
-  const copyCoords = async () => {
-    try {
-      await navigator.clipboard.writeText(coords)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
-    } catch {
-      // Clipboard blocked — the coordinates stay visible and selectable.
-    }
+  const retry = () => {
+    setState({ status: 'loading' })
+    setAttempt((a) => a + 1)
   }
 
   return (
     <main className="tonight">
-      <section className="location">
-        {location.isFallback ? (
-          <p className="muted">{t('defaultLocation')}</p>
-        ) : (
-          <p className="muted">{t('accuracy', { m: location.accuracyM })}</p>
-        )}
-        <div className="coords">
-          <bdi dir="ltr">{coords}</bdi>
-          <button className="link" onClick={copyCoords}>
-            {copied ? t('copied') : t('copyCoords')}
-          </button>
-          <button className="link" onClick={reload}>
-            {t('refreshLocation')}
-          </button>
-        </div>
-      </section>
-
+      <PlaceHeader place={place} onUseGps={onUseGps} onOpenMap={onOpenMap} />
       {state.status === 'loading' && <p className="status">{t('loadingForecast')}</p>}
       {state.status === 'error' && (
         <div className="status">
           <p>{t('error')}</p>
-          <button onClick={reload}>{t('retry')}</button>
+          <button onClick={retry}>{t('retry')}</button>
         </div>
       )}
       {state.status === 'ready' && (
         <>
-          <section className="hero">
-            <ScoreRing score={state.days[selected].result.score} label={state.days[selected].result.label} />
-            <p className="muted">{t(`confidence.${state.days[selected].confidence}`)}</p>
-            <ReasonChips reasons={state.days[selected].result.reasons} />
-          </section>
-          <TimeBand times={state.days[selected].times} />
+          <DayDetail day={state.days[selected]} />
           <WeekStrip days={state.days} selected={selected} onSelect={setSelected} />
         </>
       )}

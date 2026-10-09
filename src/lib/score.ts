@@ -84,7 +84,7 @@ export function labelFor(score: number): Label {
   return 'meh'
 }
 
-function weightedPathBlockage(pathLowCloud: number[]): number {
+export function weightedPathBlockage(pathLowCloud: number[]): number {
   if (pathLowCloud.length === 0) return 0
   let sum = 0
   let weight = 0
