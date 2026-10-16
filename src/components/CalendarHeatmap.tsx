@@ -40,7 +40,7 @@ export function CalendarHeatmap({ days, selectedKey, onSelect }: Props) {
               className="calendar-day"
               aria-pressed={key === selectedKey}
               aria-label={`${f.full(d.date)}: ${d.result.score}, ${t(`labels.${label}`)}`}
-              style={{ background: CALENDAR_FILL[label], color: label === 'meh' ? '#6B645B' : '#FFFFFF' }}
+              style={{ background: CALENDAR_FILL[label], color: label === 'meh' ? 'var(--label-2)' : '#FFFFFF' }}
               onClick={() => onSelect(key)}
             >
               {dense ? '' : f.dayNum(d.date)}

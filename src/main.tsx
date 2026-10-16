@@ -1,11 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '@fontsource-variable/geist'
-import '@fontsource-variable/newsreader/opsz.css'
-import '@fontsource-variable/newsreader/opsz-italic.css'
+// Apple devices use the system font (SF Pro / SF Hebrew); Heebo is only a Hebrew fallback elsewhere.
 import '@fontsource-variable/heebo'
-import '@fontsource/frank-ruhl-libre/hebrew-400.css'
-import '@fontsource/frank-ruhl-libre/hebrew-500.css'
 import './i18n'
 import './index.css'
 import App from './App.tsx'

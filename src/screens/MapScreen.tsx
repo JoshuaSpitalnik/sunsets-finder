@@ -17,7 +17,10 @@ import type { DayForecast } from '../lib/weather'
 // MapLibre looks for its worker next to its own file, which bundling moves — point it at the emitted asset.
 setWorkerUrl(workerUrl)
 
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron'
+// Light and dark tiles, matching the system appearance (Apple: colours adapt to light/dark).
+const STYLE_LIGHT = 'https://tiles.openfreemap.org/styles/positron'
+const STYLE_DARK = 'https://tiles.openfreemap.org/styles/dark'
+const styleUrl = () => (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? STYLE_DARK : STYLE_LIGHT)
 /** Length of the sunset-direction line drawn from the pin. */
 const SUN_LINE_KM = 30
 
@@ -100,7 +103,7 @@ export default function MapScreen({ place, initialPin, isSaved, onToggleSave, on
     if (!container.current) return
     const map = new MapLibre({
       container: container.current,
-      style: STYLE_URL,
+      style: styleUrl(),
       center: [initialPin.lng, initialPin.lat],
       zoom: 11.3,
       attributionControl: { compact: true },
@@ -190,14 +193,14 @@ export default function MapScreen({ place, initialPin, isSaved, onToggleSave, on
     }
   }
 
-  const pinColor = day ? LABEL_COLOR[day.result.label] : '#9C958B'
+  const pinColor = day ? LABEL_COLOR[day.result.label] : 'var(--score-meh)'
 
   return (
     <main className="map-screen">
       <div ref={container} className="map-canvas" />
       {createPortal(
         <svg width="48" height="58" viewBox="0 0 48 58" role="img" aria-label={day ? `${day.result.score}` : ''}>
-          <path d="M24 56C24 56 5 36 5 22a19 19 0 0 1 38 0c0 14-19 34-19 34z" fill={pinColor} stroke="#fff" strokeWidth="3" />
+          <path d="M24 56C24 56 5 36 5 22a19 19 0 0 1 38 0c0 14-19 34-19 34z" style={{ fill: pinColor }} stroke="#fff" strokeWidth="3" />
           <text x="24" y="28" textAnchor="middle" fontSize="15" fontWeight="700" fill="#fff">
             {day ? day.result.score : '…'}
           </text>

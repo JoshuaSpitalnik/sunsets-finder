@@ -18,7 +18,15 @@ Each day gets a 0–100 score, a label (סתמית / נחמדה / מעולה / �
 confidence level that drops with lead time. All weights live in `src/lib/score.ts`.
 
 ## Screens
-Design: Claude Design handoff "Sunset Finder" (warm light theme, Newsreader + Geist, with Frank Ruhl Libre + Heebo for Hebrew).
+Design: Apple-style UI following the `apple-design` and `mobile-native` skills from
+[emilkowalski/skills](https://github.com/emilkowalski/skills):
+- system font (SF Pro / SF Hebrew), with Heebo as the Hebrew fallback on other systems;
+- iOS semantic colours with automatic dark mode;
+- translucent materials for the tab bar, map search and sheets;
+- press feedback on pointer-down and iOS switches/segmented controls;
+- the reduced-motion, reduced-transparency and higher-contrast settings are respected.
+
+The layout and flows come from the earlier Claude Design handoff "Sunset Finder".
 - **הערב / Tonight**: a full-bleed simulated sky with tonight's score and summary. Below it, a sheet with
   "be there by", a countdown, a 7-day strip, the light timeline and facing direction, the reasons, and
   reminder toggles. From golden hour until blue hour ends it switches to a dark **evening mode** with a

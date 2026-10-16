@@ -23,7 +23,7 @@ export function MapSheet({ pin, forecast, saved, onUse, onToggleSave, onCheckDat
   const f = useFormat()
   const [photosOpen, setPhotosOpen] = useState(false)
   const day = forecast.status === 'ready' ? forecast.days[0] : undefined
-  const color = day ? LABEL_COLOR[day.result.label] : '#9C958B'
+  const color = day ? LABEL_COLOR[day.result.label] : 'var(--score-meh)'
   const summary = day ? summaryKeys(day.result) : undefined
 
   return (
@@ -74,9 +74,15 @@ export function MapSheet({ pin, forecast, saved, onUse, onToggleSave, onCheckDat
         <button className="primary-button" onClick={onUse}>
           {t('map.useSpot')}
         </button>
-        <button className="soft-button" aria-pressed={saved} onClick={onToggleSave}>
-          <IconBookmark size={15} filled={saved} />
-          {saved ? t('map.saved') : t('map.save')}
+        {/* Round icon button, like Apple Maps' action circles; the label stays for screen readers. */}
+        <button
+          className="soft-round"
+          aria-pressed={saved}
+          aria-label={saved ? t('map.saved') : t('map.save')}
+          title={saved ? t('map.saved') : t('map.save')}
+          onClick={onToggleSave}
+        >
+          <IconBookmark size={20} filled={saved} />
         </button>
         <a className="soft-round" href={wazeUrl(pin)} target="_blank" rel="noreferrer" aria-label={t('map.waze')}>
           <IconCar />
